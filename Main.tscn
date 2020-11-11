@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://Planet.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Vehicle.tscn" type="PackedScene" id=3]
+
+[node name="main" type="Spatial"]
+
+[node name="Vehicle" parent="." instance=ExtResource( 3 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 350, 0 )
+linear_damp = 0.0
+angular_damp = 0.0
+
+[node name="Camera Orbit" type="Spatial" parent="Vehicle"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0 )
+
+[node name="Camera" type="Camera" parent="Vehicle/Camera Orbit"]
+transform = Transform( -1, 0, -3.25841e-07, 0, 1, 0, 3.25841e-07, 0, -1, 0, 4, -20 )
+current = true
+
+[node name="Planet" parent="." instance=ExtResource( 2 )]
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.681322, 0.731984, 0, -0.731984, 0.681322, 0, 110, 100 )
+fov = 92.5
+far = 1004.1
+
+[node name="DirectionalLight" type="DirectionalLight" parent="."]
+light_bake_mode = 0
+shadow_enabled = true
