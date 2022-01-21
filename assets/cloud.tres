@@ -1,0 +1,17 @@
+[gd_resource type="SphereMesh" load_steps=4 format=2]
+
+[sub_resource type="OpenSimplexNoise" id=1]
+
+[sub_resource type="NoiseTexture" id=2]
+width = 1024
+height = 1024
+seamless = true
+noise = SubResource( 1 )
+
+[sub_resource type="SpatialMaterial" id=3]
+albedo_texture = SubResource( 2 )
+
+[resource]
+material = SubResource( 3 )
+radius = 30.0
+height = 60.0

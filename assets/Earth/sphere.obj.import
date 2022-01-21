@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/sphere.obj-65448428ddf65040dd4cb7f6f703e71d.mesh"
+
+[deps]
+
+files=[ "res://.import/sphere.obj-65448428ddf65040dd4cb7f6f703e71d.mesh" ]
+
+source_file="res://assets/Earth/sphere.obj"
+dest_files=[ "res://.import/sphere.obj-65448428ddf65040dd4cb7f6f703e71d.mesh", "res://.import/sphere.obj-65448428ddf65040dd4cb7f6f703e71d.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true
