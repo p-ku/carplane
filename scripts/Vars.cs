@@ -25,10 +25,6 @@ public class Vars : Node
   public float LHori;
   public override void _Input(InputEvent @event)
   {
-    //base._Input(@event);
-
-    /*     if (@event is InputEventKey)
-        { */
     if ((Input.IsPhysicalKeyPressed(65)) & (Input.IsPhysicalKeyPressed(68)))
     {
       LHori = 0;
