@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/lroc_color_poles_1k.jpeg-c6650749f2514a7add1783a30b5b5683.stex"
+path="res://.import/lroc_color_poles_1k.jpeg-6d8b93e6734958149293d35b0c440b0f.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://lroc_color_poles_1k.jpeg"
-dest_files=[ "res://.import/lroc_color_poles_1k.jpeg-c6650749f2514a7add1783a30b5b5683.stex" ]
+source_file="res://assets/lroc_color_poles_1k.jpeg"
+dest_files=[ "res://.import/lroc_color_poles_1k.jpeg-6d8b93e6734958149293d35b0c440b0f.stex" ]
 
 [params]
 
@@ -28,6 +28,7 @@ process/fix_alpha_border=true
 process/premult_alpha=false
 process/HDR_as_SRGB=false
 process/invert_color=false
+process/normal_map_invert_y=false
 stream=false
 size_limit=0
 detect_3d=true

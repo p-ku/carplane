@@ -11,12 +11,58 @@ public class Vars : Node
   public float cam_alt;
   public float cam_dist;
   public Basis cam_basis;
-  public float car_alt = 0F;
+  public float car_alt;
   public Vector3 car_pos;
   public Vector3 car_norm;
   public Basis car_basis;
   public float roll_val;
   public float pitch_val;
-  public float sun_ang = 0F;
+  public float sun_ang;
   public float spin = 0.0001F;
+  public float RVert;
+  public float RHori;
+  public float LVert;
+  public float LHori;
+  public override void _Input(InputEvent @event)
+  {
+    //base._Input(@event);
+
+    /*     if (@event is InputEventKey)
+        { */
+    if ((Input.IsPhysicalKeyPressed(65)) & (Input.IsPhysicalKeyPressed(68)))
+    {
+      LHori = 0;
+    }
+    else if (Input.IsPhysicalKeyPressed(65))
+    {
+      LHori = -1;
+    }
+    else if (Input.IsPhysicalKeyPressed(68))
+    {
+      LHori = 1;
+    }
+    else
+    {
+      LHori = Input.GetAxis("turn_left", "turn_right");
+    }
+    if ((Input.IsPhysicalKeyPressed(83)) & (Input.IsPhysicalKeyPressed(87)))
+    {
+      LVert = 0;
+    }
+    else if (Input.IsPhysicalKeyPressed(83))
+    {
+      LVert = -1;
+    }
+    else if (Input.IsPhysicalKeyPressed(87))
+    {
+      LVert = 1;
+    }
+    else
+    {
+      LVert = Input.GetAxis("pitch_up", "pitch_down");
+    }
+  }
 }
+
+
+
