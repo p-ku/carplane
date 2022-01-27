@@ -218,17 +218,16 @@ albedo_color = Color( 0.333333, 0.133333, 0.376471, 1 )
 [sub_resource type="ConvexPolygonShape" id=9]
 points = PoolVector3Array( -0.1, 1, 0.05, -0.1, 1, -0.05, -0.1, 1, 0.05, -0.1, 1, -0.05, -0.5, -1, 0.05, 0.5, -1, -0.05, 0.5, -1, 0.05, -0.5, -1, -0.05, -0.1, 1, 0.05, -0.1, 1, -0.05, -0.1, 1, -0.05, -0.1, 1, 0.05, 0.5, -1, 0.05, -0.5, -1, -0.05, 0.5, -1, -0.05, -0.5, -1, 0.05, -0.5, -1, 0.05, 0.5, -1, 0.05, -0.5, -1, -0.05, 0.5, -1, -0.05 )
 
-[node name="Car" type="Spatial"]
-
-[node name="CarBody" type="VehicleBody" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.279146, 0.0180597 )
-mass = 81.6327
+[node name="Car" type="VehicleBody"]
+mass = 816.3
 can_sleep = false
 linear_velocity = Vector3( 0, 0, 10 )
+linear_damp = 0.0
+angular_damp = 0.0
 script = ExtResource( 2 )
 
-[node name="Body" type="MeshInstance" parent="CarBody"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 9.06427e-05, 0.243774, -0.244585 )
+[node name="Body" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.244, -0.245 )
 mesh = SubResource( 1 )
 material/0 = null
 material/1 = null
@@ -238,78 +237,102 @@ material/4 = null
 material/5 = null
 material/6 = null
 
-[node name="rear_left" type="VehicleWheel" parent="CarBody"]
+[node name="rear_left" type="VehicleWheel" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.82, -0.19986, 1.29 )
 use_as_steering = true
 wheel_radius = 0.32
 wheel_friction_slip = 5.0
 suspension_travel = 1.0
-suspension_stiffness = 35.0
-suspension_max_force = 800.0
+suspension_stiffness = 75.0
+suspension_max_force = 3000.0
 
-[node name="rear_left" type="MeshInstance" parent="CarBody/rear_left"]
+[node name="rear_left" type="MeshInstance" parent="rear_left"]
 mesh = SubResource( 2 )
 material/0 = null
 material/1 = null
 
-[node name="rear_right" type="VehicleWheel" parent="CarBody"]
+[node name="rear_right" type="VehicleWheel" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.82, -0.19986, 1.29 )
 use_as_steering = true
 wheel_radius = 0.32
 wheel_friction_slip = 5.0
 suspension_travel = 1.0
-suspension_stiffness = 35.0
-suspension_max_force = 800.0
+suspension_stiffness = 75.0
+suspension_max_force = 3000.0
 
-[node name="rear_right" type="MeshInstance" parent="CarBody/rear_right"]
+[node name="rear_right" type="MeshInstance" parent="rear_right"]
 mesh = SubResource( 3 )
 material/0 = null
 material/1 = null
 
-[node name="front_right" type="VehicleWheel" parent="CarBody"]
+[node name="front_right" type="VehicleWheel" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.82, -0.229858, -1.54401 )
 use_as_traction = true
 wheel_radius = 0.32
 wheel_friction_slip = 5.0
 suspension_travel = 1.0
-suspension_stiffness = 35.0
-suspension_max_force = 800.0
+suspension_stiffness = 75.0
+suspension_max_force = 3000.0
 
-[node name="front_right" type="MeshInstance" parent="CarBody/front_right"]
+[node name="front_right" type="MeshInstance" parent="front_right"]
 mesh = SubResource( 4 )
 material/0 = null
 material/1 = null
 
-[node name="front_left" type="VehicleWheel" parent="CarBody"]
+[node name="front_left" type="VehicleWheel" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.82, -0.229858, -1.54401 )
 use_as_traction = true
 wheel_radius = 0.32
 wheel_friction_slip = 5.0
 suspension_travel = 1.0
-suspension_stiffness = 35.0
-suspension_max_force = 800.0
+suspension_stiffness = 75.0
+suspension_max_force = 3000.0
 
-[node name="front_left" type="MeshInstance" parent="CarBody/front_left"]
+[node name="front_left" type="MeshInstance" parent="front_left"]
 mesh = SubResource( 5 )
 material/0 = null
 material/1 = null
 
-[node name="CollisionShape" type="CollisionShape" parent="CarBody"]
+[node name="CollisionShape" type="CollisionShape" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.290138, -0.24 )
 shape = SubResource( 6 )
 
-[node name="LeftHinge" type="HingeJoint" parent="."]
-transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.8, 0.245848, 0.86306 )
-nodes/node_a = NodePath("../CarBody")
-nodes/node_b = NodePath("../LeftWing")
-angular_limit/enable = true
-angular_limit/upper = 30.0
-angular_limit/lower = 0.0
-motor/enable = true
-motor/target_velocity = 4.0
+[node name="rayLift" type="RayCast" parent="."]
+transform = Transform( 5, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0 )
+enabled = true
+cast_to = Vector3( 0, 0, 0 )
+collide_with_bodies = false
+debug_shape_custom_color = Color( 1, 0, 0, 1 )
+debug_shape_thickness = 5.0
+
+[node name="rayTorque" type="RayCast" parent="."]
+transform = Transform( 25, 0, 0, 0, 1, 0, 0, 0, 25, 0, 0, 0 )
+visible = false
+enabled = true
+cast_to = Vector3( 0, 0, 0 )
+collide_with_bodies = false
+debug_shape_custom_color = Color( 0, 0.27451, 1, 1 )
+debug_shape_thickness = 5.0
+
+[node name="rayThrust" type="RayCast" parent="."]
+transform = Transform( 5, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0 )
+visible = false
+enabled = true
+cast_to = Vector3( 0, 0, 0 )
+collide_with_bodies = false
+debug_shape_custom_color = Color( 1, 0.72549, 0, 1 )
+debug_shape_thickness = 5.0
+
+[node name="rayVel" type="RayCast" parent="."]
+transform = Transform( 5, 0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0 )
+enabled = true
+cast_to = Vector3( 0, 0, 0 )
+collide_with_bodies = false
+debug_shape_custom_color = Color( 0, 0.27451, 1, 1 )
+debug_shape_thickness = 5.0
 
 [node name="LeftWing" type="RigidBody" parent="."]
-transform = Transform( 0.99099, -0.133934, 5.85444e-09, 0, -4.37114e-08, -1, 0.133934, 0.99099, -4.33176e-08, 1.93972, -0.27215, 0.0544596 )
+transform = Transform( 0.99099, -0.133934, 5.85444e-09, 0, -4.37114e-08, -1, 0.133934, 0.99099, -4.33176e-08, 1.93972, 0.00685003, -0.24554 )
 collision_layer = 2
 
 [node name="MeshInstance" type="MeshInstance" parent="LeftWing"]
@@ -321,8 +344,18 @@ material/0 = SubResource( 8 )
 transform = Transform( 1, -2.98023e-08, -3.17636e-22, 2.98023e-08, 1, 1.06581e-14, 0, -1.06581e-14, 1, -0.839, -4.47035e-08, 0 )
 shape = SubResource( 9 )
 
+[node name="LeftHinge" type="HingeJoint" parent="LeftWing"]
+transform = Transform( 0.990991, 0.133934, -5.85444e-09, -0.133934, 0.990991, 3.93854e-10, 5.85445e-09, 3.93815e-10, 1, -1.02115, 0.953963, -0.517998 )
+nodes/node_a = NodePath("../..")
+nodes/node_b = NodePath("..")
+angular_limit/enable = true
+angular_limit/upper = 30.0
+angular_limit/lower = 0.0
+motor/enable = true
+motor/target_velocity = 4.0
+
 [node name="RightWing" type="RigidBody" parent="."]
-transform = Transform( -0.99099, 0.133934, 5.85446e-09, 0, -4.37114e-08, 1, 0.133934, 0.99099, 4.33176e-08, -1.94, -0.27215, 0.05406 )
+transform = Transform( -0.99099, 0.133934, 5.85446e-09, 0, -4.37114e-08, 1, 0.133934, 0.99099, 4.33176e-08, -1.94, 0.00684997, -0.24594 )
 collision_layer = 2
 
 [node name="MeshInstance" type="MeshInstance" parent="RightWing"]
@@ -334,12 +367,15 @@ material/0 = SubResource( 8 )
 transform = Transform( 1, -2.98023e-08, -2.37915e-16, 2.98023e-08, 1, 4.60093e-16, 2.37915e-16, -4.60093e-16, 1, -0.839, -4.47035e-08, 0 )
 shape = SubResource( 9 )
 
-[node name="RightHinge" type="HingeJoint" parent="."]
-transform = Transform( 1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -0.8, 0.245848, 0.86306 )
-nodes/node_a = NodePath("../CarBody")
-nodes/node_b = NodePath("../RightWing")
+[node name="RightHinge" type="HingeJoint" parent="RightWing"]
+transform = Transform( -0.990991, -0.133934, -5.85443e-09, 0.133934, -0.990991, -8.7029e-08, 5.85445e-09, -8.7029e-08, 1, -1.02138, 0.954396, 0.517998 )
+nodes/node_a = NodePath("../..")
+nodes/node_b = NodePath("..")
 angular_limit/enable = true
 angular_limit/upper = 30.0
 angular_limit/lower = 0.0
 motor/enable = true
 motor/target_velocity = 4.0
+
+[node name="CamJoint" type="PinJoint" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0 )

@@ -21,10 +21,22 @@ public class DebugOverlay : Label
 	}
 	label_text += GD.Str("FPS: ", Engine.GetFramesPerSecond()) + "\n";
 	label_text += String.Format("{0:0.##} {1}", mem, sizes[order]) + "\n";
-	label_text += GD.Str("LHori: ", vars.LHori) + "\n";
-	label_text += GD.Str("LVert: ", vars.LVert) + "\n";
-	label_text += GD.Str("RHori: ", vars.RHori) + "\n";
-	label_text += GD.Str("RVert: ", vars.RVert) + "\n";
+	label_text += GD.Str("Drag: ", vars.DragMag) + "N" + "\n";
+	label_text += GD.Str("AoA: ", vars.AoA) + "N" + "\n";
+	label_text += GD.Str("Lift: ", vars.Lift) + "N" + "\n";
+
+	label_text += GD.Str("Drag: ", vars.Drag.x) + "N" + "\n";
+	label_text += GD.Str("       : ", vars.Drag.y) + "N" + "\n";
+	label_text += GD.Str("       : ", vars.Drag.z) + "N" + "\n";
+	label_text += GD.Str("Ap: ", vars.Ap) + "N" + "\n";
+	label_text += GD.Str("LinVel: ", vars.LinVel.x) + "N" + "\n";
+	label_text += GD.Str("       : ", vars.LinVel.y) + "N" + "\n";
+	label_text += GD.Str("       : ", vars.LinVel.z) + "N" + "\n";
+	label_text += GD.Str("Clift", vars.Clift) + "\n";
+
+
+
+
 	Text = label_text;
   }
   public override void _Ready()

@@ -5,12 +5,11 @@ using System;
 public class CarPhysics : VehicleBody
 {
   Vars myVars;
-  HingeJoint LeftHinge;
-  HingeJoint RightHinge;
-  Area Gravity;
+
   //Car variables
   //Can't fly below this speed
-  float sines;
+  //float sines;
+  Area Gravity;
   float min_flight_speed = 10F;
   float max_flight_speed = 30F;
   float turn_speed = 0.75F;
@@ -25,11 +24,14 @@ public class CarPhysics : VehicleBody
   float last_turn;
   float smooth_input;
   float PI = Mathf.Pi;
+  Vector3 tailPos = new Vector3(0F, 0F, -2F);
+  Vector3 liftPos = new Vector3(0F, 0F, -0.3F);
 
   [Export] bool use_controls = true;
   [Export] bool show_settings = true;
   //These become just placeholders if presets are in use
   float MAX_ENGINE_FORCE = 100F;
+  Vector3 levelTorque;
   float MAX_BRAKE = 5F;
   float MAX_STEERING = 0.5F;
   float STEERING_SPEED = 7F;
@@ -45,11 +47,11 @@ public class CarPhysics : VehicleBody
   Transform bas;
   float rolling;
   float pitching;
-  float aoa;
-  float tangent;
+  float AoA;
+  float yawAng;
+  //float tangent;
   float cl;
   Vector3 lift;
-  float lift_mag;
   float throttle_val;
   float thrust_mag;
   float torque_level;
@@ -58,8 +60,8 @@ public class CarPhysics : VehicleBody
   Vector3 torque_pitch;
   Vector3 torque_yaw;
   Vector3 torque_turn;
-
-  float dotted;
+  float Clift;
+  //float dotted;
 
   float bank;
   Vector3 tar_roll;
@@ -77,7 +79,7 @@ public class CarPhysics : VehicleBody
   Vector3 yaw_level;
   Vector3 level_pitch;
   Vector3 level_roll;
-  float up;
+  //float up;
   float level_mag;
   float level_ax;
   float cur_level;
@@ -87,11 +89,28 @@ public class CarPhysics : VehicleBody
   float bastest;
   float r_lift;
   float l_lift;
-  float tail_lift;
+  Vector3 tail_lift;
+  float liftClamp1;
+  float liftClamp2;
+  float CliftConst = Mathf.Pi / 6;
+
   float GravLin;
   float GravAng;
   float LeftImp;
   float RightImp;
+  Vector3 localAngVel;
+  Vector3 localLinVel;
+  float liftConst = 0.5F * 1.229F;
+
+  Vector3 thrustBase = new Vector3(0, 0, 12000000f);
+
+  HingeJoint LeftHinge;
+  HingeJoint RightHinge;
+  RayCast rayLift;
+  RayCast rayTorque;
+  RayCast rayThrust;
+  RayCast rayVel;
+
   //float p = myVars.LVert;
   //float r = myVars.LHori;
 
@@ -104,18 +123,28 @@ public class CarPhysics : VehicleBody
   public override void _Ready()
   {
 	myVars = (Vars)GetNode("/root/Vars");
-	HingeJoint LeftHinge = (HingeJoint)GetNode("../LeftHinge");
-	HingeJoint RightHinge = (HingeJoint)GetNode("../RightHinge");
-	Area Gravity = (Area)GetNode("../../Gravity");
-
+	LeftHinge = (HingeJoint)GetNode("LeftWing/LeftHinge");
+	RightHinge = (HingeJoint)GetNode("RightWing/RightHinge");
+	Gravity = (Area)GetNode("../Gravity");
+	rayLift = (RayCast)GetNode("rayLift");
+	rayTorque = (RayCast)GetNode("rayTorque");
+	rayThrust = (RayCast)GetNode("rayThrust");
+	rayVel = (RayCast)GetNode("rayVel");
+	rayLift.Translation = liftPos;
+	rayThrust.Translation = tailPos;
+	//Transform.basis.Rotated(Transform.basis.x, Mathf.Pi / 4).Orthonormalized();
+	//LeftHinge.Transform.basis.Rotated(Transform.basis.x, Mathf.Pi / 4).Orthonormalized();
+	//RightHinge.Transform.basis.Rotated(Transform.basis.x, Mathf.Pi / 4).Orthonormalized();
+	/* 	liftClamp1 = (1F / 15F) * (-2F * Mathf.Pi + Mathf.Pi + Mathf.Asin(Mathf.Pi / 6F));
+	  liftClamp2 = (1F / 15F) * (Mathf.Pi + Mathf.Asin(Mathf.Pi / 6F)); */
+	liftClamp1 = -Mathf.Pi / 30f;
+	liftClamp2 = Mathf.Pi / 10f;
 	//SetCanSleep(false);
 
 
   }
   float lerp(float firstFloat, float secondFloat, float by)
-  {
-	return firstFloat * (1F - by) + secondFloat * by;
-  }
+  { return firstFloat * (1F - by) + secondFloat * by; }
   Vector3 Lerp(Vector3 firstVector, Vector3 secondVector, float by)
   {
 	float retX = lerp(firstVector.x, secondVector.x, by);
@@ -126,8 +155,8 @@ public class CarPhysics : VehicleBody
   public override void _PhysicsProcess(float delta)
   {
 	//var up = Transform(myVars.car_norm.rotated(GlobalTransform.basis.z),myVars.car_norm,Vector3(),Vector3())
-	bas = Transform;
-	bastest = bas.basis.x.Length();
+	//bas = Transform;
+	//bastest = bas.basis.x.Length();
 
 	myVars.car_pos = GlobalTransform.origin;
 	myVars.car_norm = myVars.car_pos.Normalized();
@@ -136,17 +165,18 @@ public class CarPhysics : VehicleBody
 	//myVars.LVert = Input.GetActionStrength("pitch_down") - Input.GetActionStrength("pitch_up");// - Mathf.Abs(myVars.LHori) / 3;
 
 	myVars.car_basis = GlobalTransform.basis;
+	myVars.car_transform = GlobalTransform;
 
-	tangent = myVars.car_pos.AngleTo(Transform.basis.z) - PI * 0.55F;
-	up = myVars.car_pos.AngleTo(Transform.basis.y);
-	aoa = LinearVelocity.AngleTo(Transform.basis.z);//#-PI*0.05;
-	sines = Mathf.Abs(PI / 2 - Mathf.Abs(Transform.basis.z.AngleTo(myVars.car_pos) - PI / 2)) / (PI / 2);
+	//tangent = myVars.car_pos.AngleTo(Transform.basis.z) - PI * 0.55F;
+	//up = myVars.car_pos.AngleTo(Transform.basis.y);
+	//aoa = LinearVelocity.AngleTo(Transform.basis.z);//#-PI*0.05;
+	//sines = Mathf.Abs(PI / 2f - Mathf.Abs(Transform.basis.z.AngleTo(myVars.car_pos) - PI / 2f)) / (PI / 2f);
 
 	//vert = Mathf.Abs(Transform.basis.y.Dot(myVars.car_norm));
-	dotted = Mathf.Abs(myVars.car_norm.Dot(Transform.basis.y));
+	//dotted = Mathf.Abs(myVars.car_norm.Dot(Transform.basis.y));
 
 
-	if (myVars.LHori == 0 && myVars.LVert == 0)
+	if (myVars.LHori == 0 & myVars.LVert == 0)
 	{
 	  // "up" from car
 	  level_dir = myVars.car_norm.Cross(Transform.basis.y).Normalized();
@@ -156,34 +186,55 @@ public class CarPhysics : VehicleBody
 
 	  var forward_level = level_dir.Dot(LinearVelocity.Normalized());
 	  level_roll = forward_level * level * Transform.basis.z;
-	  level_pitch = level_dir.Dot(Transform.basis.x.Normalized()) * level * Transform.basis.x * (1 - Mathf.Abs(forward_level));
+	  level_pitch = level_dir.Dot(Transform.basis.x.Normalized()) * level * Transform.basis.x * (1f - Mathf.Abs(forward_level));
 	  level_mag = Transform.basis.x.Length();
 	}
 	else
 	{
 	  //tar_level_vec = Transform.basis.z.Rotated(Transform.basis.x.Normalized(), -tangent);
-	  level = new Vector3();
-	  level_pitch = new Vector3();
-	  level_roll = new Vector3();
+	  level = Vector3.Zero;
+	  level_pitch = Vector3.Zero;
+	  level_roll = Vector3.Zero;
 	}
 
 
 	bank = GlobalTransform.basis.x.Dot(myVars.car_norm);
-	tar_roll = myVars.car_norm.Rotated(Transform.basis.z.Normalized(), myVars.LHori * PI / 3);
+	tar_roll = myVars.car_norm.Rotated(Transform.basis.z.Normalized(), myVars.LHori * PI / 3f);
 	torque_roll = Transform.basis.y.Cross(tar_roll) / 2 + level_roll;
-	torque_pitch = Transform.basis.x * (myVars.LVert - Mathf.Abs(Mathf.Sin(myVars.LHori * PI / 2)) / 2) + level_pitch;
+	torque_pitch = Transform.basis.x * (myVars.LVert - Mathf.Abs(Mathf.Sin(myVars.LHori * PI / 2f)) / 2f) + level_pitch;
 
 	tar_yaw = myVars.car_norm.Rotated(Transform.basis.y.Normalized(), -myVars.LHori * PI);
-	torque_yaw = new Vector3();//#(Transform.basis.y.cross(tar_yaw)/1.6).rotated(Transform.basis.x.Normalized(),PI/2);
-	torque_yaw = -Mathf.Sin(myVars.LHori * PI / 2) * Transform.basis.y;
-	AddTorque((torque_yaw + torque_roll + torque_pitch) * 500);
+	//#(Transform.basis.y.cross(tar_yaw)/1.6).rotated(Transform.basis.x.Normalized(),PI/2);
+	torque_yaw = -Mathf.Sin(myVars.LHori * PI / 2f) * Transform.basis.y;
+
+
+	AddTorque((torque_yaw + torque_roll + torque_pitch) * 500f * delta);
+	//AddTorque((myVars.LVert * Transform.basis.x.Normalized() + myVars.LHori * Transform.basis.z.Normalized()) * 500 + AngDamp);
+	localAngVel = Transform.basis.XformInv(AngularVelocity);
+	localLinVel = Transform.basis.XformInv(LinearVelocity);
+
+	//localLinVel = GlobalTransform.basis.XformInv(LinearVelocity);
+	//localLinVel = GlobalTransform.XformInv(LinearVelocity);
+	//localLinVel = Transform.basis.XformInv(LinearVelocity);
+	//localLinVel = Transform.XformInv(LinearVelocity);
+	//localLinVel = GlobalTransform.basis.Xform(LinearVelocity);
+	//localLinVel = GlobalTransform.XformInv(LinearVelocity);
+	//localLinVel = Transform.basis.Xform(LinearVelocity);
+	//localLinVel = Transform.Xform(LinearVelocity);
+
+
+
+
+
+	myVars.LocLinVel = localLinVel;
+	myVars.LinVel = LinearVelocity;
 
 	steer_val = 0.0F;
 	brake_val = 0.0F;
 
 	throttle_val = Input.GetActionStrength("thrust");
 
-	thrust = Transform.basis.Xform(new Vector3(0, 0, 100000 / myVars.car_pos.Length()));
+	thrust = thrustBase * delta / myVars.car_pos.Length();
 
 	thrust_mag = thrust.Length();
 
@@ -197,51 +248,71 @@ public class CarPhysics : VehicleBody
 	Steering = lerp(Steering, steer_val * MAX_STEERING, STEERING_SPEED * delta);
 	rolling = lerp(rolling, myVars.LHori, ROLLING_SPEED * delta);
 	pitching = -lerp(pitching, -myVars.LVert, PITCHING_SPEED * delta);
-	//r = myVars.LHori;
-	//p = myVars.LVert;
+
+	AoA = GlobalTransform.basis.z.SignedAngleTo(LinearVelocity, GlobalTransform.basis.x);
+	yawAng = Transform.basis.z.SignedAngleTo(LinearVelocity, Transform.basis.y);
+
+	myVars.AoA = AoA;
 
 	if (myVars.flying)
 	{
-	  //l_lift = (LinearVelocity*LinearVelocity*sin(6*Transform.basis.z.AngleTo(LinearVelocity)-0.3*myVars.LHori)).Length()*Transform.basis.z#torque_pitch.Length()*stepify(myVars.LVert,1));
-	  //r_lift = (LinearVelocity*LinearVelocity*sin(6*Transform.basis.z.AngleTo(LinearVelocity)+0.3*myVars.LHori)).Length()*Transform.basis.z#torque_pitch.Length()*stepify(myVars.LVert,1));
-	  lift = (LinearVelocity * LinearVelocity * Mathf.Sin(6F * Mathf.Clamp(Transform.basis.z.AngleTo(LinearVelocity), -PI / 6F, PI / 6F))).Length() * Transform.basis.y;//torque_pitch.Length()*stepify(myVars.LVert,1));
-																																										//tail_lift = (8*LinearVelocity*LinearVelocity*sin(6*Transform.basis.z.AngleTo(LinearVelocity)+0.3*(1/4+myVars.LVert))).Length()*Transform.basis.z;
-	  AddForce(thrust, Transform.basis.Xform(new Vector3(0F, 0F, -1.5F)));
-	  //add_force(tail_lift/3,Transform.basis.xform(Vector3(0,0,-1.5)));
-	  //add_force(l_lift/3,Transform.basis.xform(Vector3(1.5,0,0)));
-	  //add_force(r_lift/3,Transform.basis.xform(Vector3(-1.5,0,0)));
-	  AddCentralForce(lift * 5F);
+
+	  //lift = 5 * (LinearVelocity * LinearVelocity * Mathf.Sin(6F * Mathf.Clamp(Transform.basis.z.AngleTo(LinearVelocity), -PI / 6F, PI / 6F))).Length() * Transform.basis.y;//torque_pitch.Length()*stepify(myVars.LVert,1));
+
+	  Clift = Mathf.Sin(15f * Mathf.Clamp(AoA, liftClamp1, liftClamp2)) + 1f;
+
+	  lift = Clift * liftConst * LinearVelocity.LengthSquared() * Basis.Identity.y.Rotated(Basis.Identity.x, AoA);
+
+	  AddForce(Transform.basis.Xform(thrust), Transform.basis.Xform(tailPos));
+	  //AddCentralForce(lift);
+	  //AddForce(Transform.basis.Xform(-1000F * lift), Transform.basis.Xform(liftPos));
+	  AddCentralForce(Transform.basis.Xform(lift) * delta);//, Transform.basis.Xform(tailPos));
+
+
+
+	  myVars.Lift = lift;
+	  myVars.Clift = Clift;
+
 
 
 	}
+	levelTorque = 500f * Mathf.Sin(AoA) * Mathf.Sin(yawAng) * Basis.Identity.x;
+	//AddTorque(Transform.basis.Xform(levelTorque) * LinearVelocity.LengthSquared());
+	rayTorque.CastTo = levelTorque / 10f;
 
+	rayThrust.CastTo = thrust / 10f;
+	rayVel.CastTo = localLinVel * 10000f;
+	rayLift.CastTo = lift / 10f;
+	LinearDamp = LinearVelocity.LengthSquared() / myVars.car_pos.LengthSquared();
 
-	if (Input.IsActionJustPressed("wings"))
-	{
-	  HingeJoint LeftHinge = (HingeJoint)GetNode("../LeftHinge");
-	  HingeJoint RightHinge = (HingeJoint)GetNode("../RightHinge");
-	  Area Gravity = (Area)GetNode("../../Gravity");
-
-	  myVars.flying = !myVars.flying;
-	  if (myVars.flying)
-	  {
-		//LeftHinge.SetParam(HingeJoint.Param.MotorMaxImpulse, -100F);
-		LeftHinge.Motor__targetVelocity = -100;
-		RightHinge.Motor__targetVelocity = -100;
-		Gravity.AngularDamp = 4;
-		Gravity.LinearDamp = 4;
-	  }
-	  else
-	  {
-		LeftHinge.Motor__targetVelocity = 100;
-		RightHinge.Motor__targetVelocity = 100;
-		Gravity.AngularDamp = 0.1F;
-		Gravity.LinearDamp = 0.1F;
-	  }
-	}
+	myVars.dampy = LinearDamp;
   }
   //$"../LeftHinge".set_param($"../LeftHinge".PARAM_MOTOR_TARGET_VELOCITY, 100)
 
   //  // Called every frame. 'delta' is the elapsed time since the previous frame.
+  public override void _Input(InputEvent @event)
+  {
+	if (Input.IsActionJustPressed("wings"))
+	{
+	  myVars.flying = !myVars.flying;
+	  if (myVars.flying)
+	  {
+		//LeftHinge.SetParam(HingeJoint.Param.MotorMaxImpulse, -100F);
+		LeftHinge.Motor__targetVelocity = -100f;
+		RightHinge.Motor__targetVelocity = -100f;
+		/* 		Gravity.AngularDamp = 4f;
+		  Gravity.LinearDamp = 4f; */
+	  }
+	  else
+	  {
+		LeftHinge.Motor__targetVelocity = 100f;
+		RightHinge.Motor__targetVelocity = 100f;
+		lift = Vector3.Zero;
+		/* 		Gravity.AngularDamp = 0.1f;
+		  Gravity.LinearDamp = 0.1f; */
+	  }
 
+	}
+	// base._Input(@event); 
+  }
 }

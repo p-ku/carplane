@@ -7,19 +7,15 @@ public class SunSurface : MeshInstance
   float param;
   float sun_curve;
   Vars vars;
-  ShaderMaterial shade;
+  ShaderMaterial shade = new ShaderMaterial();
   Material mat;
   Shader shader;
-  // Declare member variables here. Examples:
-  // private int a = 2;
-  // private string b = "text";
 
-  // Called when the node enters the scene tree for the first time.
   public override void _Ready()
   {
 	shader = GD.Load<Shader>("res://sun.gdshader");
 	mat = GetSurfaceMaterial(0);
-	shade = new ShaderMaterial();
+
 	shade.Shader = shader;
 	vars = (Vars)GetNode("/root/Vars");
 

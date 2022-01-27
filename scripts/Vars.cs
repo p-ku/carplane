@@ -15,14 +15,36 @@ public class Vars : Node
   public Vector3 car_pos;
   public Vector3 car_norm;
   public Basis car_basis;
+  public Transform car_transform;
   public float roll_val;
   public float pitch_val;
   public float sun_ang;
-  public float spin = 0.0001F;
+
+  public Vector3 rotAng;
   public float RVert;
   public float RHori;
   public float LVert;
   public float LHori;
+  public float DragMag;
+  public Vector3 AngDamp;
+  public float LiftMag;
+  public Vector3 LinVel;
+  public Vector3 LocLinVel;
+
+  public float AoA;
+  //public float orbitAng;
+  public float dampy;
+  public float eF;
+  public float bF;
+  public Vector3 Lift;
+  public float Ap;
+  public Vector3 Drag;
+  public Basis carBasis;
+
+  public float Clift;
+  public float stickAng;
+
+  public Vector2 stick2;
   public override void _Input(InputEvent @event)
   {
     if ((Input.IsPhysicalKeyPressed(65)) & (Input.IsPhysicalKeyPressed(68)))
@@ -56,7 +78,15 @@ public class Vars : Node
     else
     {
       LVert = Input.GetAxis("pitch_up", "pitch_down");
+
     }
+    /*     RHori = Input.GetActionStrength("CamLeft") - Input.GetActionStrength("CamRight");
+       RVert = Input.GetActionStrength("CamDown") - Input.GetActionStrength("CamUp");
+
+          RVert = Input.GetAxis("CamUp", "CamDown");
+           RVert = Input.GetAxis("CamUp", "CamDown");
+        */
+
   }
 }
 
