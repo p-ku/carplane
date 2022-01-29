@@ -3,6 +3,8 @@ using System;
 
 public class Vars : Node
 {
+  public Vector3 debug;
+
   public bool flying;
   public Vector3 sun_pos = new Vector3(1F, 0F, 0F);
   public float planet_radius = 26F;
@@ -11,7 +13,7 @@ public class Vars : Node
   public float cam_alt;
   public float cam_dist;
   public Basis cam_basis;
-  public float car_alt;
+  public float car_alt = 1f;
   public Vector3 car_pos;
   public Vector3 car_norm;
   public Basis car_basis;
@@ -26,14 +28,13 @@ public class Vars : Node
   public float LVert;
   public float LHori;
   public float DragMag;
-  public Vector3 AngDamp;
+  public float AngDamp;
   public float LiftMag;
   public Vector3 LinVel;
   public Vector3 LocLinVel;
 
   public float AoA;
   //public float orbitAng;
-  public float dampy;
   public float eF;
   public float bF;
   public Vector3 Lift;
@@ -43,6 +44,8 @@ public class Vars : Node
 
   public float Clift;
   public float stickAng;
+  public float liftAng;
+  public Basis windFrame;
 
   public Vector2 stick2;
   public override void _Input(InputEvent @event)

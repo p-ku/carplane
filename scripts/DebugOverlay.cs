@@ -23,16 +23,9 @@ public class DebugOverlay : Label
 	label_text += String.Format("{0:0.##} {1}", mem, sizes[order]) + "\n";
 	label_text += GD.Str("Drag: ", vars.DragMag) + "N" + "\n";
 	label_text += GD.Str("AoA: ", vars.AoA) + "N" + "\n";
-	label_text += GD.Str("Lift: ", vars.Lift) + "N" + "\n";
-
-	label_text += GD.Str("Drag: ", vars.Drag.x) + "N" + "\n";
-	label_text += GD.Str("       : ", vars.Drag.y) + "N" + "\n";
-	label_text += GD.Str("       : ", vars.Drag.z) + "N" + "\n";
-	label_text += GD.Str("Ap: ", vars.Ap) + "N" + "\n";
-	label_text += GD.Str("LinVel: ", vars.LinVel.x) + "N" + "\n";
-	label_text += GD.Str("       : ", vars.LinVel.y) + "N" + "\n";
-	label_text += GD.Str("       : ", vars.LinVel.z) + "N" + "\n";
-	label_text += GD.Str("Clift", vars.Clift) + "\n";
+	label_text += GD.Str("Lift: ", vars.liftAng) + "N" + "\n";
+	label_text += GD.Str("AngDamp", vars.AngDamp) + "\n";
+	label_text += GD.Str("Debug", vars.debug) + "\n";
 
 
 
