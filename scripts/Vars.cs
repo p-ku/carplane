@@ -5,6 +5,7 @@ public class Vars : Node
 {
   public float debugFloat;
 
+  //public const float pi = Mathf.Pi;
   public bool flying;
   public Vector3 sun_pos = new Vector3(1F, 0F, 0F);
   public float planet_radius = 26F;
@@ -17,6 +18,7 @@ public class Vars : Node
   public Vector3 car_pos;
   public Vector3 car_norm;
   public Basis car_basis;
+  public float car_pos_length;
   public Transform car_transform;
   public float roll_val;
   public float pitch_val;

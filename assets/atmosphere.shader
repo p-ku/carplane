@@ -1,3 +1,5 @@
+// Original version of this shader found here: https://github.com/Dimev/Realistic-Atmosphere-Godot-and-UE4
+
 shader_type spatial;
 //render_mode blend_mix, depth_test_disable, unshaded;
 //render_mode blend_mix, shadows_disabled, unshaded;
