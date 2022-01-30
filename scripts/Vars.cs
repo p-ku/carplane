@@ -3,7 +3,7 @@ using System;
 
 public class Vars : Node
 {
-  public Vector3 debug;
+  public float debugFloat;
 
   public bool flying;
   public Vector3 sun_pos = new Vector3(1F, 0F, 0F);

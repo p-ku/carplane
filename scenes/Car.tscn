@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=2]
+[gd_scene load_steps=21 format=2]
 
 [ext_resource path="res://3d_car_customizable/assets/Rims.material" type="Material" id=1]
 [ext_resource path="res://scripts/CarPhysics.cs" type="Script" id=2]
@@ -9,6 +9,8 @@
 [ext_resource path="res://3d_car_customizable/assets/TailLights.material" type="Material" id=7]
 [ext_resource path="res://3d_car_customizable/assets/Tires.material" type="Material" id=8]
 [ext_resource path="res://3d_car_customizable/assets/Headlights.material" type="Material" id=9]
+[ext_resource path="res://scripts/Wind.cs" type="Script" id=10]
+[ext_resource path="res://sounds/wind.wav" type="AudioStream" id=11]
 
 [sub_resource type="ArrayMesh" id=1]
 resource_name = "Body"
@@ -378,3 +380,8 @@ angular_limit/upper = 30.0
 angular_limit/lower = 0.0
 motor/enable = true
 motor/target_velocity = 4.0
+
+[node name="Wind" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 11 )
+bus = "Wind"
+script = ExtResource( 10 )
