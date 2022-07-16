@@ -108,6 +108,9 @@ shader_param/dimensions = null
 [sub_resource type="ShaderMaterial" id=122]
 shader = ExtResource( 22 )
 shader_param/plan_rad = 26.0
+shader_param/fov = null
+shader_param/reso = null
+shader_param/cam_xform = null
 shader_param/atmo_height = null
 shader_param/atmo_rad = null
 shader_param/atmo_rad_sq = null
