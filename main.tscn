@@ -1,0 +1,336 @@
+[gd_scene load_steps=36 format=2]
+
+[ext_resource path="res://car/CarCam.cs" type="Script" id=1]
+[ext_resource path="res://postprocess/tiledvelocity.shader" type="Shader" id=2]
+[ext_resource path="res://environment/planet/plainSphere.tres" type="ArrayMesh" id=3]
+[ext_resource path="res://environment/planet/Redmars-Normal-8k.png" type="Texture" id=4]
+[ext_resource path="res://postprocess/finalperf.shader" type="Shader" id=5]
+[ext_resource path="res://autoload/DebugOverlay.cs" type="Script" id=8]
+[ext_resource path="res://environment/planet/Mars_8k-050104.png" type="Texture" id=9]
+[ext_resource path="res://postprocess/velocitybuffer.shader" type="Shader" id=10]
+[ext_resource path="res://postprocess/screenMesh.tres" type="ArrayMesh" id=11]
+[ext_resource path="res://car/car.tscn" type="PackedScene" id=12]
+[ext_resource path="res://postprocess/PostProcess.cs" type="Script" id=13]
+[ext_resource path="res://assets/FireMask.png" type="Texture" id=14]
+[ext_resource path="res://sounds/satBeep.wav" type="AudioStream" id=15]
+[ext_resource path="res://assets/HDR_Solar_system.png" type="Texture" id=17]
+[ext_resource path="res://environment/sun/sun.shader" type="Shader" id=18]
+[ext_resource path="res://postprocess/neighborvelocity.shader" type="Shader" id=19]
+[ext_resource path="res://environment/planet/mars_glossy.png" type="Texture" id=21]
+[ext_resource path="res://postprocess/atmoOnly.shader" type="Shader" id=22]
+
+[sub_resource type="SphereShape" id=4]
+radius = 26.0
+
+[sub_resource type="SpatialMaterial" id=71]
+params_specular_mode = 4
+albedo_texture = ExtResource( 9 )
+roughness_texture = ExtResource( 21 )
+normal_enabled = true
+normal_scale = 1.0
+normal_texture = ExtResource( 4 )
+
+[sub_resource type="CubeMesh" id=16]
+size = Vector3( 6, 2, 2 )
+
+[sub_resource type="SpatialMaterial" id=17]
+albedo_color = Color( 0.933333, 0.282353, 0.282353, 1 )
+
+[sub_resource type="BoxShape" id=35]
+
+[sub_resource type="SphereShape" id=18]
+radius = 400.0
+
+[sub_resource type="PanoramaSky" id=100]
+resource_local_to_scene = true
+panorama = ExtResource( 17 )
+
+[sub_resource type="Environment" id=101]
+resource_local_to_scene = true
+background_mode = 2
+background_sky = SubResource( 100 )
+ambient_light_color = Color( 1, 1, 1, 1 )
+ambient_light_energy = 16.0
+ambient_light_sky_contribution = 0.99
+fog_color = Color( 1, 1, 1, 0.25098 )
+fog_sun_color = Color( 1, 0.901961, 0.701961, 1 )
+fog_depth_begin = 3706.0
+fog_depth_end = 4000.0
+dof_blur_far_distance = 0.01
+dof_blur_far_amount = 0.27
+dof_blur_near_distance = 8192.0
+dof_blur_near_amount = 0.34
+
+[sub_resource type="OpenSimplexNoise" id=103]
+
+[sub_resource type="NoiseTexture" id=104]
+seamless = true
+noise = SubResource( 103 )
+
+[sub_resource type="ShaderMaterial" id=31]
+shader = ExtResource( 18 )
+shader_param/emission_intensity = 1.0
+shader_param/time_scale = 0.1
+shader_param/texture_scale = Vector2( 0.01, 0.01 )
+shader_param/edge_softness = 0.1
+shader_param/sunSet = 0.0
+shader_param/noise_texture = SubResource( 104 )
+shader_param/texture_mask = ExtResource( 14 )
+
+[sub_resource type="QuadMesh" id=32]
+material = SubResource( 31 )
+size = Vector2( 100, 100 )
+
+[sub_resource type="ShaderMaterial" id=118]
+shader = ExtResource( 5 )
+shader_param/fov = null
+shader_param/uv_depth = null
+shader_param/reso = null
+
+[sub_resource type="ShaderMaterial" id=74]
+shader = ExtResource( 10 )
+shader_param/cam_prev_pos = null
+shader_param/cam_xform = null
+shader_param/max_blur_angle = null
+shader_param/snap = false
+
+[sub_resource type="ShaderMaterial" id=121]
+shader = ExtResource( 2 )
+shader_param/reso = null
+shader_param/tile_size = 20.0
+shader_param/tile_inv = 0.05
+shader_param/dimensions = null
+
+[sub_resource type="ShaderMaterial" id=120]
+shader = ExtResource( 19 )
+shader_param/dimensions = null
+
+[sub_resource type="ShaderMaterial" id=122]
+shader = ExtResource( 22 )
+shader_param/plan_rad = 26.0
+shader_param/atmo_height = null
+shader_param/atmo_rad = null
+shader_param/atmo_rad_sq = null
+shader_param/tangent_dist = null
+shader_param/cloud_tangent_dist = null
+shader_param/f1 = null
+shader_param/f2 = null
+shader_param/f3 = null
+shader_param/f4 = null
+
+[node name="Main" type="Node"]
+
+[node name="Space" type="Spatial" parent="."]
+
+[node name="Planet" type="StaticBody" parent="Space"]
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="CollisionShape" type="CollisionShape" parent="Space/Planet"]
+shape = SubResource( 4 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Surface" type="MeshInstance" parent="Space/Planet"]
+mesh = ExtResource( 3 )
+material/0 = SubResource( 71 )
+__meta__ = {
+"_edit_lock_": true,
+"_vol_id": 5,
+"apply_volumetrics": false
+}
+
+[node name="StaticBody" type="StaticBody" parent="Space"]
+transform = Transform( 1, 0, 0, 0, 0.875194, -0.483771, 0, 0.483771, 0.875194, 0, 29.6018, 12.6816 )
+
+[node name="MeshInstance" type="MeshInstance" parent="Space/StaticBody"]
+mesh = SubResource( 16 )
+material/0 = SubResource( 17 )
+__meta__ = {
+"_vol_id": 12,
+"apply_volumetrics": false
+}
+
+[node name="CollisionShape" type="CollisionShape" parent="Space/StaticBody"]
+shape = SubResource( 35 )
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Space/StaticBody"]
+stream = ExtResource( 15 )
+doppler_tracking = 2
+
+[node name="Gravity" type="Area" parent="Space"]
+space_override = 1
+gravity_point = true
+gravity_vec = Vector3( 0, 0, 0 )
+linear_damp = 0.0
+angular_damp = 0.0
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="CollisionShape" type="CollisionShape" parent="Space/Gravity"]
+shape = SubResource( 18 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Car" parent="Space" instance=ExtResource( 12 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.735, 0 )
+
+[node name="ThrustTween" type="Tween" parent="Space/Car"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Space"]
+environment = SubResource( 101 )
+
+[node name="Sun" type="DirectionalLight" parent="Space/WorldEnvironment"]
+light_color = Color( 1, 0.94902, 0.929412, 1 )
+shadow_enabled = true
+__meta__ = {
+"volumetric": 1.0
+}
+
+[node name="SunSurface" type="MeshInstance" parent="Space/WorldEnvironment"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 200.324 )
+visible = false
+cast_shadow = 0
+generate_lightmap = false
+mesh = SubResource( 32 )
+software_skinning_transform_normals = false
+__meta__ = {
+"_vol_id": 26,
+"apply_volumetrics": false
+}
+
+[node name="OmniLight" type="OmniLight" parent="Space/WorldEnvironment"]
+visible = false
+light_color = Color( 0.278431, 0.137255, 0.0862745, 1 )
+omni_range = 49.246
+
+[node name="PostProcess" type="Node" parent="Space"]
+script = ExtResource( 13 )
+
+[node name="StaticBlur" type="ColorRect" parent="Space/PostProcess"]
+material = SubResource( 118 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="HUD" type="VBoxContainer" parent="Space/PostProcess/StaticBlur"]
+margin_right = 767.0
+margin_bottom = 200.0
+
+[node name="Label" type="Label" parent="Space/PostProcess/StaticBlur/HUD"]
+margin_right = 767.0
+margin_bottom = 14.0
+script = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ViewportContainer" type="ViewportContainer" parent="Space/PostProcess/StaticBlur"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="CarBuffer" type="Viewport" parent="Space/PostProcess/StaticBlur/ViewportContainer"]
+size = Vector2( 1280, 720 )
+transparent_bg = true
+handle_input_locally = false
+hdr = false
+usage = 3
+render_target_update_mode = 3
+
+[node name="CarCam" type="Camera" parent="Space/PostProcess/StaticBlur/ViewportContainer/CarBuffer"]
+transform = Transform( -4.37114e-08, -0.583966, 0.811778, 0, 0.811778, 0.583966, -1, 2.5526e-08, -3.54839e-08, 5, 30.7, 0 )
+cull_mask = 1047554
+current = true
+near = 2.0
+far = 10.0
+script = ExtResource( 1 )
+
+[node name="StickTween" type="Tween" parent="Space/PostProcess/StaticBlur/ViewportContainer/CarBuffer/CarCam"]
+
+[node name="CamTween" type="Tween" parent="Space/PostProcess/StaticBlur/ViewportContainer/CarBuffer/CarCam"]
+
+[node name="VelocityBuffer" type="Viewport" parent="Space/PostProcess"]
+size = Vector2( 1280, 720 )
+handle_input_locally = false
+keep_3d_linear = true
+debug_draw = 1
+render_target_update_mode = 3
+gui_disable_input = true
+
+[node name="VelocityCam" type="Camera" parent="Space/PostProcess/VelocityBuffer"]
+transform = Transform( -1, 6.58817e-08, -1.35865e-07, 0, 0.899794, 0.436315, 1.50996e-07, 0.436315, -0.899794, 0, 30, -5 )
+visible = false
+cull_mask = 1013
+doppler_tracking = 2
+current = true
+near = 2.0
+far = 500.0
+
+[node name="VelocityMesh" type="MeshInstance" parent="Space/PostProcess/VelocityBuffer/VelocityCam"]
+transform = Transform( 1, -2.13163e-14, 4.26326e-14, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+layers = 4
+extra_cull_margin = 16384.0
+generate_lightmap = false
+mesh = ExtResource( 11 )
+skeleton = NodePath("../..")
+material/0 = SubResource( 74 )
+__meta__ = {
+"apply_volumetrics": false
+}
+
+[node name="TiledBuffer" type="Viewport" parent="Space/PostProcess"]
+size = Vector2( 64, 36 )
+handle_input_locally = false
+disable_3d = true
+keep_3d_linear = true
+usage = 1
+debug_draw = 1
+render_target_update_mode = 3
+gui_disable_input = true
+
+[node name="TiledVelocity" type="ColorRect" parent="Space/PostProcess/TiledBuffer"]
+material = SubResource( 121 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="NeighborBuffer" type="Viewport" parent="Space/PostProcess"]
+size = Vector2( 64, 36 )
+handle_input_locally = false
+disable_3d = true
+keep_3d_linear = true
+usage = 1
+debug_draw = 1
+render_target_update_mode = 3
+gui_disable_input = true
+
+[node name="NeighborVelocity" type="ColorRect" parent="Space/PostProcess/NeighborBuffer"]
+material = SubResource( 120 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="ColorBuffer" type="Viewport" parent="Space/PostProcess"]
+size = Vector2( 1280, 720 )
+handle_input_locally = false
+usage = 3
+render_target_update_mode = 3
+gui_disable_input = true
+
+[node name="ColorCam" type="Camera" parent="Space/PostProcess/ColorBuffer"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 30.735, 4 )
+cull_mask = 1017
+doppler_tracking = 2
+current = true
+near = 2.0
+far = 500.0
+
+[node name="AtmoMesh" type="MeshInstance" parent="Space/PostProcess/ColorBuffer/ColorCam"]
+visible = false
+layers = 8
+extra_cull_margin = 16384.0
+generate_lightmap = false
+mesh = ExtResource( 11 )
+skeleton = NodePath("../..")
+material/0 = SubResource( 122 )

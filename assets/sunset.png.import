@@ -3,16 +3,16 @@
 importer="texture"
 type="StreamTexture"
 path.s3tc="res://.import/sunset.png-30a7ec18d55516f09d634e03e20d03ef.s3tc.stex"
-path.etc="res://.import/sunset.png-30a7ec18d55516f09d634e03e20d03ef.etc.stex"
+path.etc2="res://.import/sunset.png-30a7ec18d55516f09d634e03e20d03ef.etc2.stex"
 metadata={
-"imported_formats": [ "s3tc", "etc" ],
+"imported_formats": [ "s3tc", "etc2" ],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sunset.png"
-dest_files=[ "res://.import/sunset.png-30a7ec18d55516f09d634e03e20d03ef.s3tc.stex", "res://.import/sunset.png-30a7ec18d55516f09d634e03e20d03ef.etc.stex" ]
+dest_files=[ "res://.import/sunset.png-30a7ec18d55516f09d634e03e20d03ef.s3tc.stex", "res://.import/sunset.png-30a7ec18d55516f09d634e03e20d03ef.etc2.stex" ]
 
 [params]
 

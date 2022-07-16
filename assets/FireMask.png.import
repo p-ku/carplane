@@ -3,16 +3,16 @@
 importer="texture"
 type="StreamTexture"
 path.s3tc="res://.import/FireMask.png-1e1c127a29681f50e85d666456fd7e72.s3tc.stex"
-path.etc="res://.import/FireMask.png-1e1c127a29681f50e85d666456fd7e72.etc.stex"
+path.etc2="res://.import/FireMask.png-1e1c127a29681f50e85d666456fd7e72.etc2.stex"
 metadata={
-"imported_formats": [ "s3tc", "etc" ],
+"imported_formats": [ "s3tc", "etc2" ],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/FireMask.png"
-dest_files=[ "res://.import/FireMask.png-1e1c127a29681f50e85d666456fd7e72.s3tc.stex", "res://.import/FireMask.png-1e1c127a29681f50e85d666456fd7e72.etc.stex" ]
+dest_files=[ "res://.import/FireMask.png-1e1c127a29681f50e85d666456fd7e72.s3tc.stex", "res://.import/FireMask.png-1e1c127a29681f50e85d666456fd7e72.etc2.stex" ]
 
 [params]
 
@@ -25,11 +25,12 @@ flags/repeat=true
 flags/filter=true
 flags/mipmaps=true
 flags/anisotropic=false
-flags/srgb=2
+flags/srgb=1
 process/fix_alpha_border=true
 process/premult_alpha=false
 process/HDR_as_SRGB=false
 process/invert_color=false
+process/normal_map_invert_y=false
 stream=false
 size_limit=0
 detect_3d=false

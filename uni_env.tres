@@ -1,0 +1,25 @@
+[gd_resource type="Environment" load_steps=3 format=2]
+
+[ext_resource path="res://assets/HDR_Solar_system.png" type="Texture" id=1]
+
+[sub_resource type="PanoramaSky" id=1]
+resource_local_to_scene = true
+panorama = ExtResource( 1 )
+
+[resource]
+resource_local_to_scene = true
+background_mode = 2
+background_sky = SubResource( 1 )
+ambient_light_color = Color( 1, 1, 1, 1 )
+ambient_light_energy = 16.0
+ambient_light_sky_contribution = 0.99
+fog_color = Color( 1, 1, 1, 0.25098 )
+fog_sun_color = Color( 1, 0.901961, 0.701961, 1 )
+fog_depth_begin = 3706.0
+fog_depth_end = 4000.0
+dof_blur_far_enabled = true
+dof_blur_far_distance = 0.01
+dof_blur_far_amount = 0.27
+dof_blur_near_enabled = true
+dof_blur_near_distance = 8192.0
+dof_blur_near_amount = 0.34

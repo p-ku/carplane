@@ -11,7 +11,6 @@ resource_local_to_scene = true
 background_mode = 2
 background_sky = SubResource( 1 )
 ambient_light_color = Color( 1, 1, 1, 1 )
-ambient_light_sky_contribution = 0.9
 fog_enabled = true
 fog_color = Color( 1, 1, 1, 0.25098 )
 fog_sun_color = Color( 1, 0.901961, 0.701961, 1 )
