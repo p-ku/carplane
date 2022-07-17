@@ -15,19 +15,9 @@ uniform vec2 dimensions;
 
 void fragment()
 {
-	//	vec2 Vee = mod(FRAGCOORD.xy, 20.);
-	//	vec4 O = vec4(float(Vee.x == .5 || Vee.y == .5));
-	//	if (length(Vee - 10.) < 5.)
-	//		O.x++;
-
-	float Vee = float(floor(FRAGCOORD.xy / 20.) == floor(FRAGCOORD.xy));
-	// vec4 O = vec4(float(Vee.x == .5 || Vee.y == .5));
-	// if (length(Vee - 10.) < 5.)
-	// 	O.x++;
-
-	float count = 1.;
-	vec3 max_tile = vec3(0.);
-	float max_tile_length = 0.;
+	//	float count = 1.;
+	vec3 max_tile = vec3(0.5, 0.5, 0.);
+	//	float max_tile_length = 0.;
 
 	vec2 center_tile = floor(FRAGCOORD.xy) * tile_size;
 	vec2 first_pixel = floor(FRAGCOORD.xy / tile_size) * tile_size;
@@ -36,12 +26,12 @@ void fragment()
 	{
 		for (float j = center_tile.y + 0.5; j < center_tile.y + tile_size; j++)
 		{
-			vec3 sample = texture(velocity_buffer, vec2(i, j) / reso).xyz; // - 0.5;
-			float sample_length = length(sample.xy);
-			if (sample_length > max_tile_length)
+			vec2 sample = texture(velocity_buffer, vec2(i, j) / reso).xy;
+			float sample_length = length(sample.xy - 0.5);
+			if (sample_length > max_tile.z)
 			{
-				max_tile = sample;
-				max_tile_length = sample_length;
+				max_tile.xy = sample;
+				max_tile.z = sample_length;
 			}
 		}
 	}

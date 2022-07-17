@@ -36,7 +36,8 @@ void fragment()
 	// Ignore if rotation puts pixel behind camera.
 	//	if (prev_pixel_rot.z < 0.)
 	//	if (cam_x_angle < 1.57 && cam_y_angle < 1.57 && cam_z_angle < 1.57)
-	float real_depth = length(pixel_pos.xyz);
+	vec2 vel = vec2(0.5);
+	// float real_depth = length(pixel_pos.xyz);
 	if (!snap)
 	{
 		// Angle between current pixel and center camera view.
@@ -50,8 +51,8 @@ void fragment()
 		//	if (abs(th.x - th_rot.x) < max_blur_angle)
 		//	ALBEDO = vec3(delta_rad + 0.5, depth);
 
-		ALBEDO = vec3(delta_rad, real_depth);
-
+		// ALBEDO = vec3(delta_rad + 0.5, depth);
+		vel = delta_rad + 0.5;
 		//	else
 		//		ALBEDO = vec3(0.5, 0.5, depth);
 		// Add 0.5 for positive values, storable as colors. My thinking is these will always be small angles,
@@ -59,9 +60,11 @@ void fragment()
 		// but then you need away to store sign (+/-) e.g. in the blue channel (I need that for depth).
 		// By adding 0.5, I need only subtract 0.5 on the other side.
 	}
-	else
-		ALBEDO = vec3(0., 0., real_depth);
-	// ALBEDO = vec3(0.5, 0.5, depth);
+	// else
+	//	vel
+	//  ALBEDO = vec3(0.5, 0.5, depth);
+	//  ALBEDO = vec3(0.5, 0.5, depth);
 
 	//	ALBEDO = vec3(0., 0., depth);
+	ALBEDO = vec3(vel, depth);
 }

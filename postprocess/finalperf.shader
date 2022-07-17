@@ -10,85 +10,103 @@ uniform sampler2D color_buffer;		 // Plane image of 3D world as viewed by player
 uniform sampler2D velocity_buffer; // Velocity and depth information
 uniform sampler2D tiled_buffer;		 // Velocity and depth information
 
-const float shutter_angle = 0.5; // 0.5 is like 180deg, i.e. shutter is open for half the frame time
+const float shutter_angle = 5.5; // 0.5 is like 180deg, i.e. shutter is open for half the frame time
 // Shutter angles > 1 are unrealistic; blur length exceeds frame time, or max "shutter speed".
-const float max_steps = 16.; // Number of blur samples.
-const float threshold = 1.;	 // Minimum pixel movement required to blur. Using one pixel.
-uniform vec2 fov;						 // Field of view, horizontal and vertical.
-uniform float uv_depth;			 // Made up term, but derived with real math. Used for variable edge blur.
+const float steps = 7.;			// Number of blur samples.
+const float threshold = 1.; // Minimum pixel movement required to blur. Using one pixel.
+uniform vec2 fov;						// Field of view, horizontal and vertical.
+uniform float uv_depth;			// Made up term, but derived with real math. Used for variable edge blur.
 uniform vec2 reso;
-const float dither_scale = 0.25;
+
+float calc_weight(vec2 current, vec2 sample_uv, float offset_length, float offset_step_length)
+{
+	float sample_spread = texture(neighbor_buffer, sample_uv).z;
+	float sample_depth = texture(velocity_buffer, sample_uv).z;
+	vec2 spread_cmp = vec2(current.x, sample_spread) - offset_length + offset_step_length;
+	float depth_delta = sample_depth - current.y;
+	float depth_factor = 2. * depth_delta;
+	vec2 depth_cmp = 0.5 + vec2(depth_factor, -depth_factor) * depth_delta;
+	return dot(depth_cmp, spread_cmp);
+}
 
 void fragment()
 {
-	// vec2 positionMod = vec2(float(true && true));
+	vec3 color = texture(color_buffer, SCREEN_UV).xyz;
 
-	vec2 posMod = fract(FRAGCOORD.xy / 2.);
-	//	posMod = floor(FRAGCOORD.xy);
-	// float divie = (-dither_scale + 2. * dither_scale * posMod.x) * (-1. + 2. * posMod.y);
-	// float divie = (-dither_scale + 2. * dither_scale * posMod.x) * (-1. + 2. * posMod.y);
-
-	//	posMod *= divie;
-	vec2 truth = vec2(float(posMod.x > 0.5 && posMod.y < 0.5), float(posMod.x < 0.5 && posMod.y > 0.5));
-	float divie = (-dither_scale + 2. * dither_scale * truth.x) * (-1. + 2. * truth.y);
-
-	//	vec4 O = vec4(float((posMod.x > 0.5 && posMod.y < 0.5) || (posMod.x < 0.5 && posMod.y > 0.5)));
-	// vec4 O = vec4(float((posMod.x > 0.5 && posMod.y < 0.5) || (posMod.x < 0.5 && posMod.y > 0.5)));
-
-	//	O = vec4(divie, 0., 0., 1.);
-	vec4 O = vec4(divie);
-	//   Retrieve color and velocity from buffers.
-	vec3 col = texture(color_buffer, SCREEN_UV).xyz;
-	vec3 vel = texture(neighbor_buffer, SCREEN_UV).xyz;
-
-	// vel.xy -= 0.5;
-
-	//	vec3 tile = texture(tile_buffer, SCREEN_UV).xyz;
-
-	// Shutter speed effectively reduces pixel velocity (if less than one).
-	vec2 w_shutter = shutter_angle * vel.xy;
-
-	// This part is to increase blur at the edges of the screen.
-	//	vec2 cos_sq = cos((SCREEN_UV - 0.5) * fov - w_shutter); // Last term puts blur "point" at mid-blur
-	vec2 cos_sq = cos((SCREEN_UV - 0.5) * fov - w_shutter); // Last term puts blur "point" at mid-blur
-
-	vec2 edge_factor = uv_depth / (cos_sq * cos_sq);
-
-	// Determine number of samples.
-	float pixel_distance = length(w_shutter * edge_factor); // Screen distance in pixels.
-
-	vec3 sam = texture(neighbor_buffer, SCREEN_UV).xyz;
-	// vec2 dep_cmp = clamp(0.5 + vec2(depth_scale, -depth_scale));
-	//
-	// Only blur if it's worthwhile, but not too big either.
-	// if (pixel_distance > threshold)
-	//{
-	//  Divide delta_rad by field of view to put it in terms of SCREEN_UV,
-	//  e.g. if delta_rad = 1, then the object traveled across the entire screen.
-	//  Apply shutter angle and divide by steps as well, before looping.
-	float steps = min(max_steps, pixel_distance);
-	steps = max_steps;
-	vec2 delta_rad = w_shutter / (steps * fov);
+	vec4 current = vec4(texture(neighbor_buffer, SCREEN_UV).xyz, texture(velocity_buffer, SCREEN_UV).z);
+	current.xy -= 0.5;
 
 	//  Counter for how many blur layers are applied.
-	float count = 1.;
-	for (float i = 0.; i < steps; i++)
-	{
-		// Apply offset multiplied by number of steps.
-		vec2 offset = (i + 1.) * delta_rad;
-		// vec2 offset = (i + 0.5) * delta_rad;
+	vec3 offset_step = current.xyz / steps;
+	//	float offset_step_length = current.z / steps;
+	vec3 center_offset = 0.5 * steps * offset_step;
+	vec2 center_frag = FRAGCOORD.xy - center_offset.xy;
+	vec2 center_uv = center_frag / reso;
+	//	vec2 center_uv = calc_uv(FRAGCOORD.xy, center_offset.xy);
+	// vec4 center_sample = vec4(texture(neighbor_buffer, center_uv).xyz, texture(velocity_buffer, center_uv).z);
+	float center_sample_weight = calc_weight(current.zw, center_uv, center_offset.z, offset_step.z);
+	vec3 center_color = texture(color_buffer, center_uv).xyz;
 
-		vec2 newUV = SCREEN_UV - offset;
+	//	vec4 sum = vec4(center_sample_weight * center_color, center_sample_weight);
+	vec4 sum = vec4(center_color, center_sample_weight);
+
+	float count = 1.;
+
+	for (float i = 1.; i < steps + 1.; i++)
+	{
+
+		// Apply offset multiplied by number of steps.
+		//	vec2 offset = ((i + 1.) / steps) * current.xy;
+
+		vec3 offset = i * offset_step;
+		//	float offset_length = i * offset_step_length;
+
+		vec2 new_frag = FRAGCOORD.xy - offset.xy;
+
 		// If blur is occurring offscreen, no need to continue looping.
-		if (newUV.x < 0. || newUV.y < 0. || newUV.x > 1. || newUV.y > 1.)
-			break;
-		col += texture(color_buffer, newUV).rgb;
+		//	if (newUV.x < 0. || newUV.y < 0. || newUV.x > 1. || newUV.y > 1.)
+		//		break;
+		//	if (new_frag.x < 0. || new_frag.y < 0. || new_frag.x > reso.x || new_frag.y > reso.y)
+		//		break;
+
+		vec2 posMod = fract(new_frag / 2.);
+		//	float truth_float = 0.25 * float(posMod.x < 0.5 && posMod.y < 0.5 || posMod.x > 0.5 && posMod.y > 0.5);
+		if (posMod.x > 0.5 && posMod.y > 0.5 || posMod.x < 0.5 && posMod.y < 0.5)
+			continue;
+
+		//	vec2 sample_uv = (floor(new_frag) + 0.5) / reso;
+		vec2 sample_uv = new_frag / reso;
+
+		//	vec4 sample = vec4(texture(neighbor_buffer, sample_uv).xyz, texture(velocity_buffer, sample_uv).z);
+		//	sample.xy -= 0.5;
+
+		float sample_weight = calc_weight(current.zw, sample_uv, offset.z, offset_step.z);
+		//	col += texture(color_buffer, sample_uv).rgb;
+		sum.rgb += sample_weight * texture(color_buffer, sample_uv).xyz;
+		sum.rgb += texture(color_buffer, sample_uv).xyz;
+
+		//	tester = texture(color_buffer, sample_uv).xyz;
+		sum.w += sample_weight;
 		count++;
 	}
 	// Average the blur layers into final result.
-	col /= count;
+	sum /= count;
 	//}
-	COLOR = vec4(col, 1.);
+	//	if (count == 0.)
+	//		COLOR = vec4(1.);
+
+	COLOR = vec4(sum.rgb + (1. - sum.w) * center_color, 1.);
+	//   COLOR = vec4(vec3(sum.w), 1.);
+	COLOR = vec4(sum.rgb, 1.);
+	// COLOR = vec4(current.xy, 1., 1.);
+
+	//	COLOR = vec4(current.xy + 0.5, 0., 1.);
+
+	// vec2 posMod = fract(FRAGCOORD.xy / 200.);
+
+	// else
+	//	COLOR = vec4(0., 0., 1., 1.);
+
 	// float Vee = float(floor(FRAGCOORD.x / 20.) == floor(FRAGCOORD.y / 20.));
 
 	//	float posMod = float((-dither_scale + 2. * dither_scale * FRAGCOORD.x) * (-1. + 2. * FRAGCOORD.y));
@@ -98,4 +116,5 @@ void fragment()
 	// if (length(Vee - 10.) < 5.)
 	// 	O.x++;
 	// COLOR = vec4(O.xyz, 1.);
+	//	COLOR = vec4(vec3(truth_float), 1.);
 }

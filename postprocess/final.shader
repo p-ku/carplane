@@ -21,72 +21,59 @@ const float dither_scale = 0.25;
 
 void fragment()
 {
-	// vec2 positionMod = vec2(float(true && true));
-
-	vec2 posMod = fract(FRAGCOORD.xy / 2.);
-	//	posMod = floor(FRAGCOORD.xy);
-	// float divie = (-dither_scale + 2. * dither_scale * posMod.x) * (-1. + 2. * posMod.y);
-	// float divie = (-dither_scale + 2. * dither_scale * posMod.x) * (-1. + 2. * posMod.y);
-
-	// float divie = (-dither_scale + 2. * dither_scale) * (-1. + 2.);
-
-	//	posMod *= divie;
-	vec4 O = vec4(float((posMod.x > 0.5 && posMod.y < 0.5) || (posMod.x < 0.5 && posMod.y > 0.5)), 0., 0., 1.);
-	//	O = vec4(divie, 0., 0., 1.);
-	// O *= divie;
-	//   Retrieve color and velocity from buffers.
 	vec3 col = texture(color_buffer, SCREEN_UV).xyz;
 	vec3 vel = texture(neighbor_buffer, SCREEN_UV).xyz;
 
+	// vel.xy *= 5000.;
 	vel.xy -= 0.5;
-
+	vel.xyz *= 5.;
 	//	vec3 tile = texture(tile_buffer, SCREEN_UV).xyz;
 
 	// Shutter speed effectively reduces pixel velocity (if less than one).
-	vec2 w_shutter = shutter_angle * vel.xy;
+	//	vec2 w_shutter = shutter_angle * vel.xy;
 
 	// This part is to increase blur at the edges of the screen.
 	//	vec2 cos_sq = cos((SCREEN_UV - 0.5) * fov - w_shutter); // Last term puts blur "point" at mid-blur
-	vec2 cos_sq = cos((SCREEN_UV - 0.5) * fov - w_shutter); // Last term puts blur "point" at mid-blur
 
-	vec2 edge_factor = uv_depth / (cos_sq * cos_sq);
+	//	vec2 cos_sq = cos((SCREEN_UV - 0.5) * fov - vel.xy * 0.5); // Last term puts blur "point" at mid-blur
+	//	vec2 edge_factor = uv_depth / (cos_sq * cos_sq);
 
 	// Determine number of samples.
-	float pixel_distance = length(w_shutter * edge_factor); // Screen distance in pixels.
+	//	float pixel_distance = length(w_shutter * edge_factor); // Screen distance in pixels.
+	//	float pixel_distance = length(vel.xy * edge_factor); // Screen distance in pixels.
+	float pixel_distance = vel.z; // Screen distance in pixels.
+																// Only blur if it's worthwhile, but not too big either.
+																// if (pixel_distance > threshold)
+	//{
+	//  Divide delta_rad by field of view to put it in terms of SCREEN_UV,
+	//  e.g. if delta_rad = 1, then the object traveled across the entire screen.
+	//  Apply shutter angle and divide by steps as well, before looping.
+	float steps = min(max_steps, pixel_distance);
+	steps = max_steps;
+	//	vec2 delta_rad = w_shutter / (steps * fov);
+	vec2 delta_rad = vel.xy / (steps * fov);
 
-	vec3 sam = texture(neighbor_buffer, SCREEN_UV).xyz;
-
-	// vec2 dep_cmp =
-
-	// Only blur if it's worthwhile, but not too big either.
-	if (pixel_distance > threshold)
+	//  Counter for how many blur layers are applied.
+	float count = 1.;
+	for (float i = 0.; i < steps; i++)
 	{
-		// Divide delta_rad by field of view to put it in terms of SCREEN_UV,
-		// e.g. if delta_rad = 1, then the object traveled across the entire screen.
-		// Apply shutter angle and divide by steps as well, before looping.
-		float steps = min(max_steps, pixel_distance);
-		steps = max_steps;
-		vec2 delta_rad = w_shutter / (steps * fov);
+		// Apply offset multiplied by number of steps.
+		vec2 offset = (i + 1.) * delta_rad;
+		// vec2 offset = (i + 0.5) * delta_rad;
 
-		//  Counter for how many blur layers are applied.
-		float count = 1.;
-		for (float i = 0.; i < steps; i++)
-		{
-			// Apply offset multiplied by number of steps.
-			vec2 offset = (i + 1.) * delta_rad;
-			// vec2 offset = (i + 0.5) * delta_rad;
-
-			vec2 newUV = SCREEN_UV - offset;
-			// If blur is occurring offscreen, no need to continue looping.
-			if (newUV.x < 0. || newUV.y < 0. || newUV.x > 1. || newUV.y > 1.)
-				break;
-			col += texture(color_buffer, newUV).rgb;
-			count++;
-		}
-		// Average the blur layers into final result.
-		col /= count;
+		vec2 newUV = SCREEN_UV - offset;
+		// If blur is occurring offscreen, no need to continue looping.
+		if (newUV.x < 0. || newUV.y < 0. || newUV.x > 1. || newUV.y > 1.)
+			break;
+		col += texture(color_buffer, newUV).rgb;
+		count++;
 	}
+	// Average the blur layers into final result.
+	col /= count;
+	//	}
+	// COLOR = vec4(vel.xy * 100., 0., 1.);
 	COLOR = vec4(col, 1.);
+
 	// float Vee = float(floor(FRAGCOORD.x / 20.) == floor(FRAGCOORD.y / 20.));
 
 	//	float posMod = float((-dither_scale + 2. * dither_scale * FRAGCOORD.x) * (-1. + 2. * FRAGCOORD.y));
