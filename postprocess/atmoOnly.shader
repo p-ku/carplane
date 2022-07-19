@@ -322,16 +322,24 @@ void fragment()
 	//	z = z * 0.5 + 0.5;
 	// vec4 cloud_tex = texture(noise_vol, vec3(x, y, z));
 
-	//	float depth = texture(velocity_buffer, SCREEN_UV).z;
-	//	vec3 ndc = vec3(SCREEN_UV, depth) * 2.0 - 1.0;
-	//	vec4 view = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
-	//	view.xyz /= view.w;
-
 	float depth = texture(velocity_buffer, SCREEN_UV).z;
-	vec2 ndc = SCREEN_UV * 2.0 - 1.0;
-	vec2 view_angle = ndc * fov;
-	vec2 view2 = vec2(depth * 0.5 * sin(2. * view_angle));
-	vec3 view = vec3(view2, -view2.x / tan(view_angle.x));
+	vec3 ndc = vec3(SCREEN_UV, depth) * 2.0 - 1.0;
+	vec4 view = INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
+	view.xyz /= view.w;
+
+	// float depth = texture(velocity_buffer, SCREEN_UV).z;
+	// vec2 ndc = SCREEN_UV * 2.0 - 1.0;
+	// vec2 view_angle = ndc * fov;
+	//// Trig identity: sin(2a) = 2sin(a)cos(a), started with d*sin(th)*cos(th);
+	// vec2 view2 = vec2(depth * 0.5 * sin(2. * view_angle));
+	// vec3 view = vec3(view2, -abs(view2.x / tan(view_angle.x)));
+
+	//	float depth = texture(velocity_buffer, SCREEN_UV).z;
+	//	vec2 ndc = SCREEN_UV * 2.0 - 1.0;
+	//	vec2 view_angle = ndc * fov;
+	//	// Trig identity: sin(2a) = 2sin(a)cos(a), started with d*sin(th)*cos(th);
+	//	vec2 view2 = vec2(depth * 0.5 * sin(2. * view_angle));
+	//	vec3 view = vec3(view2, -abs(view2.y / tan(view_angle.y)));
 
 	// cam_position = CAMERA_MATRIX[3].xyz;
 	// vec4 world = CAMERA_MATRIX * INV_PROJECTION_MATRIX * vec4(ndc, 1.0);
@@ -345,7 +353,8 @@ void fragment()
 	//			vec4 atm = calculate_scattering(CAMERA_MATRIX[3].xyz, dir, length(view.xyz), light_direction);
 	//	vec4 atm = calculate_scattering(CAMERA_MATRIX[3].xyz, normalize(mat3(CAMERA_MATRIX) * view.xyz), length(view.xyz), light_direction);
 	// vec4 atm = calculate_scattering(CAMERA_MATRIX[3].xyz, normalize(mat3(CAMERA_MATRIX) * view.xyz), depth, light_direction, depth);
-	vec4 atm = calculate_scattering(cam_xform[3].xyz, normalize(mat3(cam_xform) * view.xyz), depth, light_direction);
+	// vec4 atm = calculate_scattering(cam_xform[3].xyz, normalize(mat3(cam_xform) * view.xyz), depth, light_direction);
+	vec4 atm = calculate_scattering(CAMERA_MATRIX[3].xyz, normalize(mat3(CAMERA_MATRIX) * view.xyz), length(view.xyz), light_direction);
 
 	atm.w = clamp(atm.w, 0.000000001, 1.);
 	//	atm.w = clamp(atm.w, 0.07, 1.);
@@ -357,12 +366,13 @@ void fragment()
 	// atm.xyz = pow(max(atm.xyz, 0.), vec3(1. / 2.2));
 	// atm.xyz / atm.w;
 	// COLOR = vec4(atm.xyz / atm.w, atm.w);
-	ALBEDO = vec3(atm.xyz / atm.w);
-
+	ALBEDO = atm.xyz / atm.w;
+	// ALBEDO = vec3(atm.w);
 	//	ALBEDO.r = atm.r / clamp_r;
 	//	ALBEDO.g = atm.g / clamp_g;
 	//	ALBEDO.b = atm.b / clamp_b;
 
 	ALPHA = atm.w;
+	// ALPHA = 1.;
 	//	ALPHA = clamp(atm.w, 0.09, 1.);
 }

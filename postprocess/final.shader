@@ -10,7 +10,7 @@ uniform sampler2D color_buffer;		 // Plane image of 3D world as viewed by player
 uniform sampler2D velocity_buffer; // Velocity and depth information
 uniform sampler2D tiled_buffer;		 // Velocity and depth information
 
-const float shutter_angle = 0.5; // 0.5 is like 180deg, i.e. shutter is open for half the frame time
+// const float shutter_angle; // 0.5 is like 180deg, i.e. shutter is open for half the frame time
 // Shutter angles > 1 are unrealistic; blur length exceeds frame time, or max "shutter speed".
 const float max_steps = 16.; // Number of blur samples.
 const float threshold = 1.;	 // Minimum pixel movement required to blur. Using one pixel.
@@ -18,6 +18,7 @@ uniform vec2 fov;						 // Field of view, horizontal and vertical.
 uniform float uv_depth;			 // Made up term, but derived with real math. Used for variable edge blur.
 uniform vec2 reso;
 const float dither_scale = 0.25;
+uniform float buffer_correction;
 
 void fragment()
 {
@@ -25,8 +26,8 @@ void fragment()
 	vec3 vel = texture(neighbor_buffer, SCREEN_UV).xyz;
 
 	// vel.xy *= 5000.;
-	vel.xy -= 0.5;
-	vel.xyz *= 5.;
+	vel.xy -= buffer_correction;
+	//	vel.xyz *= 5.;
 	//	vec3 tile = texture(tile_buffer, SCREEN_UV).xyz;
 
 	// Shutter speed effectively reduces pixel velocity (if less than one).
@@ -71,7 +72,7 @@ void fragment()
 	// Average the blur layers into final result.
 	col /= count;
 	//	}
-	// COLOR = vec4(vel.xy * 100., 0., 1.);
+	COLOR = vec4(vel.xy * 1000., 0., 1.);
 	COLOR = vec4(col, 1.);
 
 	// float Vee = float(floor(FRAGCOORD.x / 20.) == floor(FRAGCOORD.y / 20.));
