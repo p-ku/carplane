@@ -4,8 +4,8 @@
 [ext_resource path="res://postprocess/velocity/vel2tiled.shader" type="Shader" id=2]
 [ext_resource path="res://environment/planet/plainSphere.tres" type="ArrayMesh" id=3]
 [ext_resource path="res://environment/planet/Redmars-Normal-8k.png" type="Texture" id=4]
-[ext_resource path="res://postprocess/finalperf.shader" type="Shader" id=5]
 [ext_resource path="res://car/DebugCam.cs" type="Script" id=6]
+[ext_resource path="res://postprocess/macguire.shader" type="Shader" id=7]
 [ext_resource path="res://autoload/DebugOverlay.cs" type="Script" id=8]
 [ext_resource path="res://environment/planet/Mars_8k-050104.png" type="Texture" id=9]
 [ext_resource path="res://postprocess/velocity/vel1pass.shader" type="Shader" id=10]
@@ -81,7 +81,7 @@ material = SubResource( 31 )
 size = Vector2( 100, 100 )
 
 [sub_resource type="ShaderMaterial" id=118]
-shader = ExtResource( 5 )
+shader = ExtResource( 7 )
 shader_param/shutter_angle = null
 shader_param/fov = null
 shader_param/half_fov = null
@@ -89,11 +89,16 @@ shader_param/uv_depth = null
 shader_param/uv_depth_vec = null
 shader_param/half_uv_depth_vec = null
 shader_param/reso = null
+shader_param/dim_check = null
+shader_param/short_dim = null
+shader_param/long_dim = null
 shader_param/buffer_correction = null
 shader_param/f1 = null
 shader_param/f2 = null
 shader_param/f3 = null
 shader_param/f4 = null
+shader_param/halton_num = null
+shader_param/tile_size = null
 
 [sub_resource type="ShaderMaterial" id=74]
 shader = ExtResource( 10 )

@@ -14,8 +14,15 @@ public class PostProcess : Node
   Globals vars;
   [Export(PropertyHint.Range, "0,1")]
   float shutterAngle = 0.5f;
+  uint blurSteps = 16;
+  uint haltonMod, haltonMax = 2147483647; // Top range of 32-bit integer (minus one).
+  uint pixelCount;// = (uint)vars.renderRes.x * (uint)vars.renderRes.y;
+  uint shortDim;
+  uint longDim;
+  Vector2 dimCheck;
   public override void _Ready()
   {
+
     vars = (Globals)GetTree().Root.FindNode("Globals", true, false);
     cam = (CarCam)GetTree().Root.FindNode("CarCam", true, false);
     velCam = (Camera)GetTree().Root.FindNode("VelocityCam", true, false);
@@ -24,7 +31,24 @@ public class PostProcess : Node
     colorCam = (Camera)GetTree().Root.FindNode("ColorCam", true, false);
     debugCam = (Camera)GetTree().Root.FindNode("DebugCam", true, false);
 
+    pixelCount = (uint)vars.renderRes.x * (uint)vars.renderRes.y;
+    haltonMod = haltonMax - pixelCount;
+    haltonMod = (uint)vars.renderRes.x + (uint)vars.renderRes.y;
 
+    if (vars.renderRes.x >= vars.renderRes.y)
+    {
+      longDim = (uint)vars.renderRes.x;
+      shortDim = (uint)vars.renderRes.y;
+      dimCheck = new Vector2(1, 0);
+    }
+    else
+    {
+      longDim = (uint)vars.renderRes.y;
+      shortDim = (uint)vars.renderRes.x;
+      dimCheck = new Vector2(0, 1);
+    }
+
+    // haltonMod = pixelCount * 100;
     MeshInstance velMesh = (MeshInstance)GetTree().Root.FindNode("VelocityMesh", true, false);
     staticBlur = (ColorRect)GetTree().Root.FindNode("StaticBlur", true, false);
 
@@ -45,7 +69,7 @@ public class PostProcess : Node
     Viewport carView = (Viewport)GetTree().Root.FindNode("CarBuffer", true, false);
 
     colView.Size = vars.renderRes;
-    int blurTileSize = 20;
+    int blurTileSize = 40;
     velView.Size = vars.renderRes;
     tiledView.Size = vars.renderRes / blurTileSize;
     neighborView.Size = tiledView.Size;
@@ -119,8 +143,16 @@ public class PostProcess : Node
     (staticBlur.Material as ShaderMaterial).SetShaderParam("uv_depth_vec", uvDepthVec);
     (staticBlur.Material as ShaderMaterial).SetShaderParam("half_uv_depth_vec", halfUvDepthVec);
     (staticBlur.Material as ShaderMaterial).SetShaderParam("reso", vars.renderRes);
-    (staticBlur.Material as ShaderMaterial).SetShaderParam("buffer_correction", shutterAngle * 0.5f);
+    (staticBlur.Material as ShaderMaterial).SetShaderParam("buffer_correction", shutterAngle * 0.25f);
     (staticBlur.Material as ShaderMaterial).SetShaderParam("shutter_angle", shutterAngle);
+    (staticBlur.Material as ShaderMaterial).SetShaderParam("tile_size", blurTileSize);
+    (staticBlur.Material as ShaderMaterial).SetShaderParam("long_dim", (int)longDim);
+    (staticBlur.Material as ShaderMaterial).SetShaderParam("short_dim", (int)shortDim);
+    (staticBlur.Material as ShaderMaterial).SetShaderParam("dim_check", dimCheck);
+
+    // (staticBlur.Material as ShaderMaterial).SetShaderParam("steps", (float)blurSteps);
+
+
 
     // img.Create((int)vars.displayRes.x, (int)vars.displayRes.y, false, Image.Format.Rgbah);
     // ImageTexture windowTex = new ImageTexture();
@@ -177,6 +209,13 @@ public class PostProcess : Node
     (staticBlur.Material as ShaderMaterial).SetShaderParam("f4", factor4);
 
     (staticBlur.Material as ShaderMaterial).SetShaderParam("cam_xform", velCam.GlobalTransform);
+
+    // Random integer between haltonMin and haltonMax.
+    // uint haltonNum = GD.Randi() % haltonMod;
+    uint haltonNum = GD.Randi() % (3600 + longDim);
+
+    (staticBlur.Material as ShaderMaterial).SetShaderParam("halton_num", (int)haltonNum);
+
   }
 
   public override void _PhysicsProcess(float delta)

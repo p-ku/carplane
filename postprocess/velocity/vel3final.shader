@@ -33,6 +33,7 @@ void fragment()
 	{
 		for (float j = -1.; j < 1.5; j++)
 		{
+
 			vec2 rel_frag = vec2(i, j);
 			vec2 tiled_frag = (rel_frag + FRAGCOORD.xy);
 			if (rel_frag == vec2(0.))
@@ -40,9 +41,11 @@ void fragment()
 			if (tiled_frag.x > dims.x || tiled_frag.y > dims.y || tiled_frag.x < 0. || tiled_frag.y < 0.)
 				continue;
 			vec3 sample = texture(tiled_velocity, tiled_frag / dims).xyz;
+
 			vec2 corrected_sample = sample.xy - 0.5;
-			denom += dot(corrected_sample, corrected_sample);
-			sum += abs(dot(center_vmax, corrected_sample));
+
+			//	denom += dot(corrected_sample, corrected_sample);
+			//	sum += abs(dot(center_vmax, corrected_sample));
 
 			if (sample.z > max_tile.z)
 			{
@@ -57,7 +60,7 @@ void fragment()
 			}
 		}
 	}
-	variance = 1. - variance / denom;
+	//	variance = 1. - sum / denom;
 
 	// 	for (float i = -1.; i < 1.5; i++)
 	// 	{
@@ -96,6 +99,8 @@ void fragment()
 	// float real_dist = max_tile_length * 2. * 3.14159 * max_tile.z;
 	// float pixel_depth = max_tile.z * length(pixel_dist) / real_dist;
 	//	COLOR = vec4(pixel_dist + 5000., pixel_depth + 5000., 1.);
-	COLOR = vec4(max_tile.xy * shutter_angle, variance, 1.);
+	// max_tile.xy = buffer_tap.xy * clamp(buffer_tap.z, 0.5, ) / (buffer_tap.z + epsilon);
+
+	COLOR = vec4(max_tile * shutter_angle * 0.5, 1.);
 	// COLOR = vec4(max_tile, 1.);
 }

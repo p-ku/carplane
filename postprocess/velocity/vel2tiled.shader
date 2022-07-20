@@ -7,7 +7,7 @@ render_mode unshaded;
 
 uniform sampler2D velocity_buffer; // Velocity and depth information
 uniform vec2 reso;
-uniform float tile_size = 20.;
+uniform float tile_size;
 uniform float tile_inv = 0.05;
 const float tile_inv_2 = 0.025;
 // uniform vec2 dimensions;

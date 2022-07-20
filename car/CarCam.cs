@@ -35,7 +35,6 @@ public class CarCam : Camera
     MaxCamTurn = ninetyRad;
     lerpVal = MaxCamTurn / 400f;
 
-    GD.Randomize();
     noise.Seed = (int)GD.Randi();
     noise.Period = 4f;
     noise.Octaves = 2;
