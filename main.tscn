@@ -92,12 +92,15 @@ shader_param/reso = null
 shader_param/dim_check = null
 shader_param/short_dim = null
 shader_param/long_dim = null
+shader_param/pixel_count = null
 shader_param/buffer_correction = null
 shader_param/f1 = null
 shader_param/f2 = null
 shader_param/f3 = null
 shader_param/f4 = null
 shader_param/halton_num = null
+shader_param/halton_shift = null
+shader_param/halton_mod = null
 shader_param/tile_size = null
 
 [sub_resource type="ShaderMaterial" id=74]
@@ -108,6 +111,7 @@ shader_param/max_blur_angle = null
 shader_param/snap = false
 shader_param/fov = null
 shader_param/uv_depth_vec = null
+shader_param/reso = null
 
 [sub_resource type="ShaderMaterial" id=121]
 shader = ExtResource( 2 )

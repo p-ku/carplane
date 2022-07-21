@@ -101,6 +101,6 @@ void fragment()
 	//	COLOR = vec4(pixel_dist + 5000., pixel_depth + 5000., 1.);
 	// max_tile.xy = buffer_tap.xy * clamp(buffer_tap.z, 0.5, ) / (buffer_tap.z + epsilon);
 
-	COLOR = vec4(max_tile * shutter_angle * 0.5, 1.);
-	// COLOR = vec4(max_tile, 1.);
+	// COLOR = vec4(max_tile * shutter_angle * 0.5, 1.);
+	COLOR = vec4(max_tile, 1.);
 }

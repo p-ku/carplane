@@ -10,6 +10,12 @@ uniform float max_blur_angle; // Horizontal field of view in radians, halved in 
 uniform bool snap = false;
 uniform vec2 fov;
 uniform vec2 uv_depth_vec;
+uniform vec2 reso;
+const float lil_r = 40.;
+const float epsilon = 10e-5;
+const float framerate_target = 60.;
+const float shutter_angle = 0.5;
+const float exposure_t = shutter_angle / framerate_target;
 
 void vertex()
 {
@@ -47,48 +53,23 @@ void fragment()
 	//	vec2 vel = vec2(0.5);
 	// float real_depth = length(pixel_pos.xyz);
 	//	vec2 delta_rad = vec2(0.5, 0.5);
-	vec2 uv_prev = vec2(0.5);
+	// vec2 uv_prev = vec2(0.0);
+	// vec2 uv_vel = vec2(0.0);
+	vec2 pix_half_blur = vec2(0.);
 	if (!snap)
 	{
-		// Angle between current pixel and center camera view.
-		//	vec2 th = atan(pixel_pos.xy / pixel_pos.z);
-		// Angle between current pixel as seen in previous frame.
-		//	vec2 th_prev = atan(prev_pixel_pos.xy / prev_pixel_pos.z);
-
-		//	vec2 uv_prev = tan(th_prev) / uv_depth_vec;
-
-		// Angle between object's initial position and final position, relative to the camera.
-		//	delta_rad = th - th_prev;
-
-		//	vec2 delta_rad = th_prev - th;
-		//	if (prev_pixel_pos.x < 0. && prev_pixel_pos.y < 0.)
-		//		uv_prev = -0.5 + prev_pixel_pos.xy / (prev_pixel_pos.z * uv_depth_vec);
-		//	else
-		//	uv_prev = 0.5 + prev_pixel_pos.xy / (prev_pixel_pos.z * uv_depth_vec);
-
-		uv_prev = 0.5 - prev_pixel_pos.xy / (prev_pixel_pos.z * uv_depth_vec);
-
-		//	if (prev_pixel_pos.x < 0.)
-		//		uv_prev.x -= 0.5;
-		//	// uv_prev.x = 0.5 + prev_pixel_pos.x / (prev_pixel_pos.z * uv_depth_vec.x);
-		//
-		//	if (prev_pixel_pos.y < 0.)
-		//		uv_prev.y -= 0.5;
-		//	uv_prev.y = 0.5 + prev_pixel_pos.y / (prev_pixel_pos.z * uv_depth_vec.y);
-		//	vec2 uv_prev = 0.5 + tan(th_prev) / uv_depth_vec;
-		//  Cap angles at which velocity is considered. Prevents glitchy stuff.
-		//	if (abs(th.x - th_rot.x) < max_blur_angle)
-		//	ALBEDO = vec3(delta_rad + 0.5, depth);
-		//	uv_prev.x = 0.5 * (uv_prev.x - 0.5);
-		// ALBEDO = vec3(delta_rad + 0.5, depth);
-		//	vel = delta_rad + 0.5;
-
-		//	else
-		//		ALBEDO = vec3(0.5, 0.5, depth);
-		// Add 0.5 for positive values, storable as colors. My thinking is these will always be small angles,
-		// So no worrying about values becoming greater than 1. Absolute value is the obvious path,
-		// but then you need away to store sign (+/-) e.g. in the blue channel (I need that for depth).
-		// By adding 0.5, I need only subtract 0.5 on the other side.
+		// vec2 uv_prev = 0.5 - prev_pixel_pos.xy / (prev_pixel_pos.z * uv_depth_vec);
+		vec2 frag_prev = reso * 0.5 - prev_pixel_pos.xy * uv_depth_vec / prev_pixel_pos.z;
+		vec2 frag_vel = (FRAGCOORD.xy - frag_prev) * framerate_target;
+		//	vec2 uv_vel = SCREEN_UV - uv_prev;
+		//		vec2 uv2pix = (pixel_vel.xy - 0.5) * reso;
+		//	float vel_mag = length(uv_prev);
+		// vec2 frag_vel = uv_vel * reso * framerate_target;
+		float vel_mag = length(frag_vel);
+		pix_half_blur = 0.5 * frag_vel * clamp(vel_mag * exposure_t, 0.5, lil_r) / (lil_r * (vel_mag + epsilon));
+		// uv_vel = 0.5 + 0.5 * uv_vel * clamp(vel_mag * exposure_time, 0.5, lil_r) / (lil_r * (vel_mag + epsilon));
+		//	float final_mag = length(uv2pix);
+		//	uv_vel = pix_half_blur / reso;
 	}
 	// else
 	//	vel
@@ -98,7 +79,9 @@ void fragment()
 	//	ALBEDO = vec3(0., 0., depth);
 
 	// SCREEN_UV - uv_prev gives the UV velocity of the pixel.
-	ALBEDO = vec3(SCREEN_UV - uv_prev + 0.5, depth);
+	//	ALBEDO = vec3(SCREEN_UV - uv_prev + 0.5, depth);
+	ALBEDO = vec3(pix_half_blur + 0.5, depth);
+
 	//	ALBEDO = vec3(uv_prev, depth);
 
 	// ALBEDO = vec3(uv_prev - SCREEN_UV, depth);
