@@ -152,7 +152,7 @@ public class PostProcess : Node
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("short_dim", (int)shortDim);
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("dim_check", dimCheck);
 
-	int haltonShift = 3;
+	int haltonShift = 28; // 12,20,28,36
 	int haltonMod = (int)longDim / haltonShift;
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("halton_shift", haltonShift);
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("halton_mod", haltonMod);

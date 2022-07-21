@@ -132,51 +132,50 @@ varying mat4 ipm;
 float halton(vec2 frag) // https://www.gsn-lib.org/apps/raytracing/index.php?name=example_halton
 {
 	float short_frag = floor(dot(vec2(dim_check.y, dim_check.x), frag));
-	float time_adjust = mod(ceil(TIME * framerate_target), float(short_dim)); // float(long_dim));
-	time_adjust = ceil(TIME * framerate_target);
 
-	float short_frag_time = short_frag + time_adjust;
-	short_frag_time = short_frag + time_adjust;
+	// float time_adjust = ceil(TIME * framerate_target);
 
+	//	float short_frag_time = short_frag + time_adjust;
 	float long_frag = ceil(dot(dim_check, frag));
-	//	float long_frag_time = long_frag + ceil(TIME * 60.);
-
-	float even_odd = mod(short_frag_time, 2) * 2. - 1.;
 
 	//	bool checker = fract((short_frag - time_adjust) / float(halton_mod)) <= 0.5;
-	bool checker = fract((short_frag - time_adjust) / float(33)) <= 0.5;
+	// bool checker = fract((short_frag + time_adjust) / float(3)) <= 0.5;
 
 	// checker = fract(short_frag_time / 2.) >= 0.5;
-	checker = true;
-	vec2 check_vec = vec2(float(checker), float(!checker));
+	//  checker = true;
+	// vec2 check_vec = vec2(float(checker), float(!checker));
 
-	bool time_check = fract(TIME * framerate_target * 0.5) >= 0.5;
-	vec2 time_check_vec = vec2(float(time_check), float(!time_check));
+	// bool time_check = fract(TIME * framerate_target * 0.5) >= 0.5;
+	// vec2 time_check_vec = vec2(float(time_check), float(!time_check));
 
-	float pixel_row = float(long_dim) * short_frag;
+	// float pixel_row = float(long_dim) * short_frag;
 
-	float up_down = pixel_row;
-
-	float left_right = dot(vec2(long_frag, float(long_dim + 1) - long_frag), check_vec);
+	// float up_down = pixel_row;
+	//	float up_down = float(long_dim) * short_frag;
+	// float left_right = dot(vec2(long_frag, float(long_dim + 1) - long_frag), check_vec);
+	//	float left_right = long_frag;
 
 	//	int pixel_id = int(float(long_dim) * short_frag + dot(vec2(long_frag, float(long_dim + 1) - long_frag), check_vec));
-	int pixel_id = int(up_down + left_right);
+	//	int pixel_id = int(up_down + left_right);
+	int pixel_id = int(long_frag + float(long_dim) * short_frag);
 
 	// int n = halton_num + pixel_id % (long_dim - 11 - int(10. * cos(short_frag * pi / float(short_dim))) % 21); //+ int(long_frag); // + int(TIME);
 	// n = halton_num + pixel_id % (long_dim - 21 - int(10. * cos(short_frag * pi / float(short_dim))));					 //+ int(long_frag); // + int(TIME);
 	// n = halton_num + pixel_id % (long_dim - 21);																															 //+ int(long_frag); // + int(TIME);
 	// n = 21 + pixel_id % (long_dim - halton_shift);
-	int n = pixel_id % (long_dim - 5 + int(2. * (cos(short_frag_time * pi / 4.) - 1.))); // 6, 10,14,18
-
+	// int n = pixel_id % (long_dim - 17 + int(2. * (cos(short_frag_time * pi / 4.) - 1.))); // 6, 10,14,18
+	// int n = pixel_id % (long_dim - 17 + int(2. * (cos(short_frag_time * pi / 4.) - 1.))); // 6, 10,14,18
+	// int n = pixel_id % (long_dim - halton_shift - int(short_frag) % halton_mod);
+	int n = pixel_id % (long_dim - halton_shift);
 	// int halton_pixel = 21 + (pixel_id) % (long_dim - halton_shift);
-
+	float base = 2.;
 	float r = 0.0;
 	float f = 1.0;
 	while (n > 0)
 	{
-		f = f / 2.;
-		r = r + f * float(n % 2);
-		n = int(floor(float(n) / 2.));
+		f = f / base;
+		r = r + f * float(n % int(base));
+		n = int(floor(float(n) / base));
 	}
 	return r;
 }
