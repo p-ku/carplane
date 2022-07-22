@@ -15,8 +15,6 @@ public class PostProcess : Node
   [Export(PropertyHint.Range, "0,1")]
   float shutterAngle = 0.5f;
   uint blurSteps = 16;
-  // uint haltonMod, haltonMax = 2147483647; // Top range of 32-bit integer (minus one).
-  uint pixelCount;// = (uint)vars.renderRes.x * (uint)vars.renderRes.y;
   uint shortDim;
   uint longDim;
   Vector2 dimCheck;
@@ -31,10 +29,6 @@ public class PostProcess : Node
 	colorCam = (Camera)GetTree().Root.FindNode("ColorCam", true, false);
 	debugCam = (Camera)GetTree().Root.FindNode("DebugCam", true, false);
 
-	pixelCount = (uint)vars.renderRes.x * (uint)vars.renderRes.y;
-	// haltonMod = haltonMax - pixelCount;
-	// haltonMod = (uint)vars.renderRes.x + (uint)vars.renderRes.y;
-
 	if (vars.renderRes.x >= vars.renderRes.y)
 	{
 	  longDim = (uint)vars.renderRes.x;
@@ -48,18 +42,14 @@ public class PostProcess : Node
 	  dimCheck = new Vector2(0f, 1f);
 	}
 
-	// haltonMod = pixelCount * 100;
 	MeshInstance velMesh = (MeshInstance)GetTree().Root.FindNode("VelocityMesh", true, false);
 	staticBlur = (ColorRect)GetTree().Root.FindNode("StaticBlur", true, false);
+	//staticBlur = (Sprite)GetTree().Root.FindNode("StaticBlur2", true, false);
 
 	MeshInstance atmoMesh = (MeshInstance)GetTree().Root.FindNode("AtmoMesh", true, false);
-	// ColorRect atmoRect = (ColorRect)GetTree().Root.FindNode("AtmoRect", true, false);
 	atmoMat = atmoMesh.GetActiveMaterial(0) as ShaderMaterial;
 
-	// atmoMat = atmoRect.Material as ShaderMaterial;
-
 	ColorRect tiledVel = (ColorRect)GetTree().Root.FindNode("TiledVelocity", true, false);
-
 	ColorRect neighborVel = (ColorRect)GetTree().Root.FindNode("NeighborVelocity", true, false);
 
 	Viewport velView = (Viewport)GetTree().Root.FindNode("VelocityBuffer", true, false);
@@ -67,12 +57,22 @@ public class PostProcess : Node
 	Viewport neighborView = (Viewport)GetTree().Root.FindNode("NeighborBuffer", true, false);
 	Viewport colView = (Viewport)GetTree().Root.FindNode("ColorBuffer", true, false);
 	Viewport carView = (Viewport)GetTree().Root.FindNode("CarBuffer", true, false);
+	ViewportContainer carContainer = (ViewportContainer)GetTree().Root.FindNode("CarContainer", true, false);
+
+	//Image img = new Image();
+	//img.Create((int)vars.renderRes.x, (int)vars.renderRes.y, false, Image.Format.Rgba8);
+	//ImageTexture texture_n = new ImageTexture();
+	//texture_n.CreateFromImage(img, 0);
+	//staticBlur.Texture = texture_n;
+	//staticBlur.Offset = Vector2.Zero;
 
 	colView.Size = vars.renderRes;
 	int blurTileSize = 40;
 	velView.Size = vars.renderRes;
-	tiledView.Size = vars.renderRes / blurTileSize;
+	tiledView.Size = velView.Size / blurTileSize;
 	neighborView.Size = tiledView.Size;
+	carView.Size = vars.renderRes;
+	carContainer.RectSize = vars.renderRes;
 
 	ViewportTexture carBuff = carView.GetTexture();
 	ViewportTexture colBuff = colView.GetTexture();
@@ -81,44 +81,38 @@ public class PostProcess : Node
 	ViewportTexture variBuff = neighborView.GetTexture();
 	ViewportTexture neighborBuff = neighborView.GetTexture();
 
-
 	Vector2 halfResoSq = vars.renderRes * vars.renderRes * 0.25f;
 
-	float uvDepth = Mathf.Sqrt(halfResoSq.y / Mathf.Pow(Mathf.Sin(vars.FovHalfRad.y), 2f) - halfResoSq.y);
-	Vector2 halfUvDepthVec;
-	halfUvDepthVec.x = Mathf.Tan(vars.FovHalfRad.x);
-	halfUvDepthVec.y = Mathf.Tan(vars.FovHalfRad.y);
-	Vector2 uvDepthVec = 2 * halfUvDepthVec;
-	uvDepthVec = 0.5f * vars.renderRes / halfUvDepthVec;
+	Vector2 halfUvDepthVec = new Vector2(Mathf.Tan(vars.FovHalfRad.x), Mathf.Tan(vars.FovHalfRad.y));
+
+	Vector2 resDepthVec = 0.5f * velView.Size / halfUvDepthVec;
+	Vector2 uvDepthVec = new Vector2(0.5f, 0.5f) / halfUvDepthVec;
+
+	Vector2 tileUV = new Vector2(blurTileSize, blurTileSize) / velView.Size;
 
 	// Initiate velocity pass.
 	velMat = velMesh.GetActiveMaterial(0) as ShaderMaterial;
-	velMat.SetShaderParam("max_blur_angle", vars.MaxBlurAngleRad);
-	velMat.SetShaderParam("fov", vars.FovRad);
+	velMat.SetShaderParam("res_depth_vec", resDepthVec);
 	velMat.SetShaderParam("uv_depth_vec", uvDepthVec);
-	velMat.SetShaderParam("reso", vars.renderRes);
+	velMat.SetShaderParam("tile_uv", tileUV);
+
+	velMat.SetShaderParam("reso", velView.Size);
 
 	velCam.Visible = true;
 	atmoMesh.Visible = true;
 
+	Vector2 invReso = Vector2.One / velView.Size;
+
 	// Initiate blur tile pass.
-	// Vector2 tileDimensions = new Vector2(64, 36);
-	Vector2 tileDimensions = vars.renderRes / blurTileSize;
-	(tiledVel.Material as ShaderMaterial).SetShaderParam("dims", tileDimensions);
+	Vector2 tileDimensions = velView.Size / blurTileSize;
 	(tiledVel.Material as ShaderMaterial).SetShaderParam("velocity_buffer", velBuff);
-	(tiledVel.Material as ShaderMaterial).SetShaderParam("reso", vars.renderRes);
-	(tiledVel.Material as ShaderMaterial).SetShaderParam("tile_size", blurTileSize);
+	(tiledVel.Material as ShaderMaterial).SetShaderParam("reso", velView.Size);
+	(tiledVel.Material as ShaderMaterial).SetShaderParam("inv_reso", invReso);
+	(tiledVel.Material as ShaderMaterial).SetShaderParam("tile_uv", tileUV);
 
 	// Initiate blur neighbor pass.
-	// int numTiles = (int)tileDimensions.x * (int)tileDimensions.y;
-	(neighborVel.Material as ShaderMaterial).SetShaderParam("velocity_buffer", velBuff);
 	(neighborVel.Material as ShaderMaterial).SetShaderParam("tiled_velocity", tiledBuff);
 	(neighborVel.Material as ShaderMaterial).SetShaderParam("dims", tileDimensions);
-	(neighborVel.Material as ShaderMaterial).SetShaderParam("shutter_angle", shutterAngle);
-	(neighborVel.Material as ShaderMaterial).SetShaderParam("fov", vars.FovRad);
-	(neighborVel.Material as ShaderMaterial).SetShaderParam("uv_depth", uvDepth);
-	(neighborVel.Material as ShaderMaterial).SetShaderParam("reso", vars.renderRes);
-	(neighborVel.Material as ShaderMaterial).SetShaderParam("uv_depth_vec", uvDepthVec);
 
 	// Initiate atmosphere.
 	atmoMat.SetShaderParam("velocity_buffer", velBuff);
@@ -135,74 +129,22 @@ public class PostProcess : Node
 	// Create final image.
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("velocity_buffer", velBuff);
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("neighbor_buffer", neighborBuff);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("tiled_buffer", tiledBuff);
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("color_buffer", colBuff);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("vari_buffer", variBuff);
 
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("fov", vars.FovRad);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("half_fov", vars.FovHalfRad);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("uv_depth", uvDepth);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("uv_depth_vec", uvDepthVec);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("half_uv_depth_vec", halfUvDepthVec);
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("reso", vars.renderRes);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("buffer_correction", shutterAngle * 0.25f);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("shutter_angle", shutterAngle);
+
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("tile_size", blurTileSize);
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("long_dim", (int)longDim);
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("short_dim", (int)shortDim);
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("dim_check", dimCheck);
-
-	int haltonShift = 28; // 12,20,28,36
-	int haltonMod = (int)longDim / haltonShift;
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("halton_shift", haltonShift);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("halton_mod", haltonMod);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("pixel_count", (float)pixelCount);
-
-	// (staticBlur.Material as ShaderMaterial).SetShaderParam("steps", (float)blurSteps);
-
-
-
-	// img.Create((int)vars.displayRes.x, (int)vars.displayRes.y, false, Image.Format.Rgbah);
-	// ImageTexture windowTex = new ImageTexture();
-	// windowTex.CreateFromImage(img, 0);
-	// staticBlur.Texture = windowTex;
-
-	//  Transform projmat = new Transform(
-	//    new Vector3(S, 0, 0),
-	//    new Vector3(0, S, 0),
-	//    new Vector3(0, 0, -velCam.Far / (velCam.Far - velCam.Near)),
-	//    new Vector3(0, 0, -velCam.Far * velCam.Near / (velCam.Far - velCam.Near)));
-
-
-
+	(staticBlur.Material as ShaderMaterial).SetShaderParam("inv_reso", invReso);
+	(staticBlur.Material as ShaderMaterial).SetShaderParam("tile_uv", tileUV);
 
   }
 
   public override void _Process(float delta)
   {
-	//  float bottom = -top;
-	//  float right = top * vars.aspectRatio;
-	//  float left = -right;
-
-	// float S = 1 / Mathf.Tan(vars.FovHalfRad.y);
-
-	//  float factor2 = 1 / velCam.Near;
-	//
-	//  float factor1 = (1 / velCam.Far) - factor2;
-
-	//  Transform projmat = new Transform(
-	//    new Vector3(2 * velCam.Near / (right * left), 0, 0),
-	//    new Vector3(0, 2 * velCam.Near / (top - bottom), 0),
-	//    Vector3.Zero,
-	//    new Vector3(0, 0, factor1));
-
-	//  Transform invprojmat = new Transform(
-	//    new Vector3((top * vars.aspectRatio) / velCam.Near, 0, 0),
-	//      Vector3.Zero,
-	//      Vector3.Zero,
-	//    new Vector3(0, 0, -1));
 	float top = Mathf.Tan(vars.FovHalfRad.y) * velCam.Near;
-
 
 	float factor1 = (top * vars.aspectRatio) / velCam.Near;
 	float f_denom = 2 * velCam.Far * velCam.Near;
@@ -210,21 +152,10 @@ public class PostProcess : Node
 	float factor3 = (velCam.Near - velCam.Far) / f_denom;
 	float factor4 = (velCam.Near + velCam.Far) / f_denom;
 
-	// velMat.SetShaderParam("inv_mat", invprojmat);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("f1", factor1);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("f2", factor2);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("f3", factor3);
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("f4", factor4);
-
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("cam_xform", velCam.GlobalTransform);
-
-	// Random integer between haltonMin and haltonMax.
-	// uint haltonNum = GD.Randi() % haltonMod;
-	// uint haltonNum = GD.Randi() % (3600 + longDim);
-	uint haltonNum = GD.Randi() % 3600 + 21;
-
-	(staticBlur.Material as ShaderMaterial).SetShaderParam("halton_num", (int)haltonNum);
-
+	atmoMat.SetShaderParam("f1", factor1);
+	atmoMat.SetShaderParam("f2", factor2);
+	atmoMat.SetShaderParam("f3", factor3);
+	atmoMat.SetShaderParam("f4", factor4);
   }
 
   public override void _PhysicsProcess(float delta)
@@ -248,25 +179,23 @@ public class PostProcess : Node
   void processVelocity()
   {
 
-	if (!check)
-	{
-	  camBlurAngle.x = cam.PrevGlobalTransform.basis.x.AngleTo(cam.GlobalTransform.basis.x);
-	  camBlurAngle.y = cam.PrevGlobalTransform.basis.y.AngleTo(cam.GlobalTransform.basis.y);
-	  camBlurAngle.z = cam.PrevGlobalTransform.basis.z.AngleTo(cam.GlobalTransform.basis.z);
-	}
+	//if (!check)
+	//{
+	camBlurAngle.x = cam.PrevGlobalTransform.basis.x.AngleTo(cam.GlobalTransform.basis.x);
+	camBlurAngle.y = cam.PrevGlobalTransform.basis.y.AngleTo(cam.GlobalTransform.basis.y);
+	camBlurAngle.z = cam.PrevGlobalTransform.basis.z.AngleTo(cam.GlobalTransform.basis.z);
+	//}
 	//  else { check = !check; }
 
 
 	if (camBlurAngle.x > 1.57f | camBlurAngle.y > 1.57f | camBlurAngle.z > 1.57f)// | camBlurAngle.Length() > 1.57f)
 	{
 	  velMat.SetShaderParam("snap", true);
-	  check = !check;
+	  //  check = !check;
 	}
 	else velMat.SetShaderParam("snap", false);
 
 	velMat.SetShaderParam("cam_prev_pos", -cam.ToLocal(cam.PrevGlobalTransform.origin));
 	velMat.SetShaderParam("cam_prev_xform", cam.PrevGlobalTransform.basis.Inverse() * cam.GlobalTransform.basis);
-	// velMat.SetShaderParam("cam_prev_xform", cam.PrevTransform.basis.Inverse() * cam.Transform.basis);
-
   }
 }

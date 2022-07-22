@@ -7,28 +7,22 @@ render_mode unshaded;
 
 uniform sampler2D velocity_buffer; // Velocity and depth information
 uniform vec2 reso;
-uniform float tile_size;
-uniform float tile_inv = 0.05;
-const float tile_inv_2 = 0.025;
-// uniform vec2 dimensions;
+uniform vec2 inv_reso;
+uniform vec2 tile_uv;
 
 void fragment()
 {
-	//	float count = 1.;
 	vec3 max_tile = vec3(0.5, 0.5, 0.);
-	// vec3 max_tile = vec3(0.);
 
-	//	float max_tile_length = 0.;
+	vec2 first_uv = floor(FRAGCOORD.xy) * tile_uv;
+	// vec2 first_uv = SCREEN_UV;
 
-	vec2 first_frag = floor(FRAGCOORD.xy) * tile_size;
-	//	vec2 first_frag = 0.5 + floor(FRAGCOORD.xy / tile_size) * tile_size;
-	//	vec2 first_frag = 0.5 + floor(SCREEN_UV * reso) * tile_size;
-
-	for (float i = first_frag.x; i < first_frag.x + tile_size; i++)
+	for (float i = first_uv.x; i < first_uv.x + tile_uv.x; i += inv_reso.x)
 	{
-		for (float j = first_frag.y; j < first_frag.y + tile_size; j++)
+		for (float j = first_uv.y; j < first_uv.y + tile_uv.y; j += inv_reso.y)
 		{
-			vec2 sample = texture(velocity_buffer, vec2(i, j) / reso).xy;
+			vec2 sample = texture(velocity_buffer, vec2(i, j)).xy;
+
 			float sample_length = length(sample.xy - 0.5);
 
 			if (sample_length > max_tile.z)
@@ -38,7 +32,5 @@ void fragment()
 			}
 		}
 	}
-	// COLOR = vec4(max_tile + 0.5, max_tile_length, 1.);
-
 	COLOR = vec4(max_tile, 1.);
 }
