@@ -30,6 +30,7 @@ void fragment()
 		{
 			vec2 sample = texture(velocity_buffer, vec2(i, j) / reso).xy;
 			float sample_length = length(sample.xy - 0.5);
+
 			if (sample_length > max_tile.z)
 			{
 				max_tile.xy = sample;

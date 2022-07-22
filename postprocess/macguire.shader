@@ -40,22 +40,28 @@ const float epsilon = 10e-5;
 const float length_in_samples = steps * 2. - 1.;
 const float pi = 3.14159265359;
 const float two_pi = 2. * pi;
-const float big_n = 35., lil_r = 40., kk = 40., nn = 0.95, gamma = 1.5, phi = 27.;
+const float big_n = 35., kk = 40., nn = 0.95, gamma = 1.5, phi = 27.;
 const float big_e = 0.00833333333;
 const float j_prime_term = nn * phi / big_n;
 
 varying mat4 ipm;
 
-// vec3 tap(vec3 pixel_vel)
-// {
-// 	//	vec2 uv2pix = (pixel_vel.xy - 0.5) * reso;
-// 	//	float vel_mag = length(uv2pix);
-// 	////	uv2pix = 0.5 + 0.5 * uv2pix * clamp(vel_mag * big_e, 0.5, lil_r) / (lil_r * (vel_mag + epsilon));
-// 	float final_mag = length(uv2pix);
-//
-// 	return vec3(uv2pix, final_mag);
-// }
-
+vec3 tap(vec3 pixel_vel)
+{
+	vec2 corrected_vel = (pixel_vel.xy - 0.5); // * reso;
+	float vel_mag = length(corrected_vel);
+	corrected_vel = 0.5 + 0.5 * corrected_vel * clamp(vel_mag * big_e, 0.5, tile_size) / (tile_size * (vel_mag + epsilon));
+	//	float final_mag = length(uv2pix);
+	corrected_vel *= reso;
+	vel_mag = length(corrected_vel);
+	return vec3(corrected_vel, vel_mag);
+	//	return vec3(uv2pix, final_mag);
+}
+vec4 correct(vec3 pixel_vel)
+{
+	vec2 corrected = (pixel_vel.xy - 0.5) * 2. * tile_size;
+	return vec4(corrected, pixel_vel.z, length(corrected));
+}
 // vec2 halton(inout float result, float n)
 // {
 //
@@ -129,46 +135,13 @@ varying mat4 ipm;
 //	}
 //	result = float(n) / float(d);
 //}
-float halton(vec2 frag) // https://www.gsn-lib.org/apps/raytracing/index.php?name=example_halton
+float halton3(vec2 frag) // https://www.gsn-lib.org/apps/raytracing/index.php?name=example_halton
 {
 	float short_frag = floor(dot(vec2(dim_check.y, dim_check.x), frag));
-
-	// float time_adjust = ceil(TIME * framerate_target);
-
-	//	float short_frag_time = short_frag + time_adjust;
 	float long_frag = ceil(dot(dim_check, frag));
 
-	//	bool checker = fract((short_frag - time_adjust) / float(halton_mod)) <= 0.5;
-	// bool checker = fract((short_frag + time_adjust) / float(3)) <= 0.5;
-
-	// checker = fract(short_frag_time / 2.) >= 0.5;
-	//  checker = true;
-	// vec2 check_vec = vec2(float(checker), float(!checker));
-
-	// bool time_check = fract(TIME * framerate_target * 0.5) >= 0.5;
-	// vec2 time_check_vec = vec2(float(time_check), float(!time_check));
-
-	// float pixel_row = float(long_dim) * short_frag;
-
-	// float up_down = pixel_row;
-	//	float up_down = float(long_dim) * short_frag;
-	// float left_right = dot(vec2(long_frag, float(long_dim + 1) - long_frag), check_vec);
-	//	float left_right = long_frag;
-
-	//	int pixel_id = int(float(long_dim) * short_frag + dot(vec2(long_frag, float(long_dim + 1) - long_frag), check_vec));
-	//	int pixel_id = int(up_down + left_right);
-	int pixel_id = int(long_frag + float(long_dim) * short_frag);
-
-	// int n = halton_num + pixel_id % (long_dim - 11 - int(10. * cos(short_frag * pi / float(short_dim))) % 21); //+ int(long_frag); // + int(TIME);
-	// n = halton_num + pixel_id % (long_dim - 21 - int(10. * cos(short_frag * pi / float(short_dim))));					 //+ int(long_frag); // + int(TIME);
-	// n = halton_num + pixel_id % (long_dim - 21);																															 //+ int(long_frag); // + int(TIME);
-	// n = 21 + pixel_id % (long_dim - halton_shift);
-	// int n = pixel_id % (long_dim - 17 + int(2. * (cos(short_frag_time * pi / 4.) - 1.))); // 6, 10,14,18
-	// int n = pixel_id % (long_dim - 17 + int(2. * (cos(short_frag_time * pi / 4.) - 1.))); // 6, 10,14,18
-	// int n = pixel_id % (long_dim - halton_shift - int(short_frag) % halton_mod);
-	int n = pixel_id % (long_dim - halton_shift);
-	// int halton_pixel = 21 + (pixel_id) % (long_dim - halton_shift);
-	float base = 2.;
+	int n = int(long_frag + float(long_dim) * short_frag);
+	float base = 3.;
 	float r = 0.0;
 	float f = 1.0;
 	while (n > 0)
@@ -182,93 +155,134 @@ float halton(vec2 frag) // https://www.gsn-lib.org/apps/raytracing/index.php?nam
 
 vec3 filter(vec2 uv, vec2 frag)
 {
-	vec3 vp = texture(velocity_buffer, uv).xyz;
+	//	vec3 vp = texture(velocity_buffer, uv).xyz;
+	//	vp.xy -= 0.5;
 	//	float vp_mag = length(vp.xy);
+	//
 	vec3 color_p = texture(color_buffer, uv).xyz;
 
-	float j = halton(frag);
+	float j = halton3(frag);
 
-	// vec2 tile_frag = floor(FRAGCOORD.xy / tile_size);
 	vec2 j_tile_falloff = abs(0.5 - fract(frag.xy / tile_size));
 	vec2 j_tile_cmp = vec2(float(j_tile_falloff.x >= j_tile_falloff.y), float(j_tile_falloff.x < j_tile_falloff.y));
 
 	j_tile_falloff = j_tile_cmp * j_tile_falloff;
 	// if (j_tile_falloff.x == j_tile_falloff.y)
 
-	vec2 j_frag = frag.xy + mix(vec2(-1.), vec2(1.), j * j_tile_falloff + 0.5);
+	//	vec2 j_frag = frag.xy + mix(vec2(-1.), vec2(1.), j * j_tile_falloff + 0.5);
+	vec2 j_frag = frag + mix(vec2(-1.), vec2(1.), j * j_tile_falloff);
+
+	//	vec2 j_frag = frag.xy + mix(vec2(-1.), vec2(1.), dot(vec2(j), j_tile_falloff) + 0.5);
 
 	// vec3 v_max = tap(j_frag / reso);
-	vec3 v_max = texture(neighbor_buffer, j_frag / reso).xyz;
-	//	v_max.xy -= 0.5;
+	vec4 v_max = correct(texture(neighbor_buffer, j_frag / reso).xyz);
+
+	//	v_max.xy = (v_max.xy - 0.5) * 2. * tile_size;
 	// v_max.xy -= buffer_correction;
 	//	v_max.xy *= reso;
-	// v_max.z = length(v_max.xy);
-	//	if (v_max.z < 0.0625)
+	//	v_max.z = length(v_max.xy);
+	//	if (v_max.z < 0.5)
 	//		return color_p;
 
 	vec2 wn = normalize(v_max.xy);
-	//	vec2 vc = 0.5 + 0.5 * vp.xy * clamp(vp_mag * big_e, 0.5, lil_r) / (lil_r * (vp_mag + epsilon));
-	vec3 vc = vp; //- 0.5;
-	float vc_mag = length(vc);
-	vec2 wp = vec2(-wn.y, wn.x);
-	//	vec2 vc = mix(wp, normalize(vp.xy), (length(vp.xy) - 0.5) / gamma);
-	// float vc_mag = length(vc);
-	// vc = 0.5 + 0.5 * vc * clamp(vc_mag, 0.5, lil_r) / lil_r;
+	//	vec2 vc = 0.5 + 0.5 * vp.xy * clamp(vp_mag * big_e, 0.5, tile_size) / (tile_size * (vp_mag + epsilon));
 
+	// float vc_norm = normalize(vc.xy);
+	vec4 vc = correct(texture(velocity_buffer, uv).xyz);
+	//	vc.xy -= 0.5;
+	//	vc.xy = (vc.xy - 0.5) * 2. * tile_size;
+	// float vc.w = vc.w;
+
+	vec2 wp = vec2(-wn.y, wn.x);
 	if (dot(wp, vc.xy) < 0.)
 		wp = -wp;
-	vec2 wc = normalize(mix(wp, normalize(vc.xy), (vc_mag - 0.5) / gamma));
 
-	float total_weight = big_n / (kk * vc_mag);
+	//	vec2 vc = mix(wp, normalize(vp.xy), (vp_mag * sqrt(2.) - 0.0)); // / gamma);
+	// vec2 vc = mix(wp, normalize(vp.xy), (vp_mag * sqrt(2.)));
+
+	//	vc.xy -= 0.5;
+	// float vc.w = length(vc.xy);
+	//  vec2 vc = mix(wp, normalize(vp.xy), (vp_mag - 0.5) / gamma);
+	//  float vc.w = length(vc);
+	//	vec2 vc = mix(wp, normalize(vp.xy), (length(vp.xy) - 0.5) / gamma);
+	//   float vc.w = length(vc);
+	//   vc = 0.5 + 0.5 * vc * clamp(vc.w, 0.5, tile_size) / tile_size;
+
+	vec2 wc = normalize(mix(wp, normalize(vc.xy), (vc.w - 0.5) / gamma));
+	//	vec2 wc = normalize(vc);
+
+	float total_weight = big_n / (kk * vc.w);
+	total_weight = 0.7;
 
 	vec3 result = color_p * total_weight;
 
 	float j_prime = j * j_prime_term;
-
 	for (float i = 0.; i < big_n; i++)
 	{
+		// float i = big_n - 1.;
 		float tee = mix(-1., 1., (i + j_prime + 1.) / (big_n + 1.));
+		tee = mix(-1., 1., (i + 1.) / (big_n + 1.));
 		vec2 d;
 		if (int(i) % 2 == 0)
 			d = vc.xy;
 		else
 			d = v_max.xy;
 
-		float big_tee = abs(tee * v_max.z);
+		d = v_max.xy;
+
+		float big_tee = abs(tee * v_max.w);
 
 		vec2 big_s = floor(tee * d) + frag;
 
-		vec3 vps = texture(velocity_buffer, big_s / reso).xyz;
+		//	vec3 vps = texture(velocity_buffer, big_s / reso).xyz;
 		//	vps.xy -= 0.5;
 		//	vps.xy *= reso;
 		//		float vps_mag = length(vps.xy);
-		//	vec2 vs = 0.5 + 0.5 * vps.xy * clamp(vps_mag * big_e, 0.5, lil_r) / (lil_r * (vps_mag + epsilon));
-		vec3 vs = vps; // - 0.5;
-		float vs_mag = length(vs);
+		//	vec2 vs = 0.5 + 0.5 * vps.xy * clamp(vps_mag * big_e, 0.5, tile_size) / (tile_size * (vps_mag + epsilon));
+		vec4 vs = correct(texture(velocity_buffer, big_s / reso).xyz);
+		//	vs.xy -= 0.5;
+		//	vs.xy = (vs.xy - 0.5) * 2. * tile_size;
 
+		//	float vs.w = length(vs.xy);
+		// float vs.w = vs.w;
 		vec3 color_s = texture(color_buffer, big_s / reso).xyz;
 
-		//	float vs_mag = length(vs.xy);
-		vec2 z_cmp = vec2(float(vp.z > vps.z), float(vps.z > vp.z));
+		vec2 z_cmp = vec2(float(vc.z > vs.z), float(vs.z > vc.z));
+		// vec2 z_cmp;
+		// z_cmp.x = clamp(1. - (vc.z - vs.z) / min(vc.z, vs.z), 0., 1.);
+		// z_cmp.y = clamp(1. - (vs.z - vc.z) / min(vs.z, vc.z), 0., 1.);
 
 		float weight = 0.;
 		float wA = dot(wc, d);
+		// float wA = dot(wc, normalize(v_max.xy));
+
 		float wB = dot(normalize(vs.xy), d);
 
-		float cone_s = max(1. - big_tee / vs_mag, 0.);
-		float cone_c = max(1. - big_tee / vc_mag, 0.);
-		float v_min = min(vs_mag, vc_mag);
+		float cone_s = max(1. - big_tee / vs.w, 0.);
+		float cone_c = max(1. - big_tee / vc.w, 0.);
+		float v_min = min(vs.w, vc.w);
 		float cylinder = 1. - smoothstep(0.95 * v_min, 1.05 * v_min, big_tee);
-
+		// float cylinder = 1.;
+		// if (big_tee > v_min * 1.05)
+		//	cylinder = 0.;
+		// else if (big_tee > v_min * 0.95)
+		//{
+		//	float ex = (big_tee - v_min * 0.95) / (v_min * 0.1);
+		//	float ex_sq = ex * ex;
+		//	cylinder = 1. - (3. * ex_sq - 2.0 * ex_sq * ex);
+		//}
 		weight += z_cmp.x * cone_s * wB;
 		weight += z_cmp.y * cone_c * wA;
 		weight += cylinder * max(wA, wB) * 2.;
+
 		total_weight += weight;
 		result += color_s * weight;
 	}
-
-	// return result / total_weight;
-	return vec3(j);
+	//	return vec3(j_prime);
+	// return vec3(uv, 0.);
+	// return vec3(vc.w);
+	return result / total_weight;
+	// return vec3(vc.xy / reso, 0.);
 }
 
 void vertex()
@@ -286,7 +300,7 @@ void fragment()
 
 	//	COLOR = vec4(sum.rgb + (1. - sum.w) * pixel_color, 1.);
 
-	COLOR = vec4(texture(neighbor_buffer, SCREEN_UV).xy, 0., 1.);
+	//	COLOR = vec4(texture(neighbor_buffer, SCREEN_UV).xy, 0., 1.);
 	//	COLOR = vec4(vec3((output.x + 1.) * 0.5), 1.);
 	COLOR = vec4(output, 1.);
 	//	COLOR = vec4(fract(TIME));

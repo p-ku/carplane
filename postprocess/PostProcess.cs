@@ -39,13 +39,13 @@ public class PostProcess : Node
 	{
 	  longDim = (uint)vars.renderRes.x;
 	  shortDim = (uint)vars.renderRes.y;
-	  dimCheck = new Vector2(1, 0);
+	  dimCheck = new Vector2(1f, 0f);
 	}
 	else
 	{
 	  longDim = (uint)vars.renderRes.y;
 	  shortDim = (uint)vars.renderRes.x;
-	  dimCheck = new Vector2(0, 1);
+	  dimCheck = new Vector2(0f, 1f);
 	}
 
 	// haltonMod = pixelCount * 100;

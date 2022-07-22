@@ -12,7 +12,7 @@ uniform vec2 fov;
 uniform vec2 uv_depth_vec;
 uniform vec2 reso;
 const float lil_r = 40.;
-const float epsilon = 10e-5;
+const float eps = 10e-5;
 const float framerate_target = 60.;
 const float shutter_angle = 0.5;
 const float exposure_t = shutter_angle / framerate_target;
@@ -55,22 +55,25 @@ void fragment()
 	//	vec2 delta_rad = vec2(0.5, 0.5);
 	// vec2 uv_prev = vec2(0.0);
 	// vec2 uv_vel = vec2(0.0);
-	vec2 pix_half_blur = vec2(0.);
-	if (!snap)
-	{
-		// vec2 uv_prev = 0.5 - prev_pixel_pos.xy / (prev_pixel_pos.z * uv_depth_vec);
-		vec2 frag_prev = reso * 0.5 - prev_pixel_pos.xy * uv_depth_vec / prev_pixel_pos.z;
-		vec2 frag_vel = (FRAGCOORD.xy - frag_prev) * framerate_target;
-		//	vec2 uv_vel = SCREEN_UV - uv_prev;
-		//		vec2 uv2pix = (pixel_vel.xy - 0.5) * reso;
-		//	float vel_mag = length(uv_prev);
-		// vec2 frag_vel = uv_vel * reso * framerate_target;
-		float vel_mag = length(frag_vel);
-		pix_half_blur = 0.5 * frag_vel * clamp(vel_mag * exposure_t, 0.5, lil_r) / (lil_r * (vel_mag + epsilon));
-		// uv_vel = 0.5 + 0.5 * uv_vel * clamp(vel_mag * exposure_time, 0.5, lil_r) / (lil_r * (vel_mag + epsilon));
-		//	float final_mag = length(uv2pix);
-		//	uv_vel = pix_half_blur / reso;
-	}
+	vec2 pix_half_blur = vec2(0.5);
+	// if (!snap)
+	//{
+
+	// vec2 uv_prev = 0.5 - prev_pixel_pos.xy / (prev_pixel_pos.z * uv_depth_vec);
+	// vec2 uv_vel = SCREEN_UV - uv_prev;
+
+	vec2 frag_prev = reso * 0.5 - prev_pixel_pos.xy * uv_depth_vec / prev_pixel_pos.z;
+	vec2 frag_vel = (FRAGCOORD.xy - frag_prev);
+	float vel_mag = length(frag_vel);
+	pix_half_blur = 0.5 + 0.5 * frag_vel * clamp(vel_mag * shutter_angle, 0.5, lil_r) / (lil_r * (vel_mag + eps));
+
+	//		vec2 uv2pix = (pixel_vel.xy - 0.5) * reso;
+	//	float vel_mag = length(uv_prev);
+	// vec2 frag_vel = uv_vel * reso * framerate_target;
+	// uv_vel = 0.5 + 0.5 * uv_vel * clamp(vel_mag * exposure_time, 0.5, lil_r) / (lil_r * (vel_mag + epsilon));
+	//	float final_mag = length(uv2pix);
+	//	uv_vel = pix_half_blur / reso;
+	//}
 	// else
 	//	vel
 	//  ALBEDO = vec3(0.5, 0.5, depth);
@@ -80,7 +83,7 @@ void fragment()
 
 	// SCREEN_UV - uv_prev gives the UV velocity of the pixel.
 	//	ALBEDO = vec3(SCREEN_UV - uv_prev + 0.5, depth);
-	ALBEDO = vec3(pix_half_blur + 0.5, depth);
+	ALBEDO = vec3(pix_half_blur, depth);
 
 	//	ALBEDO = vec3(uv_prev, depth);
 
