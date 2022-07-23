@@ -12,9 +12,6 @@ void fragment()
 {
 	vec3 max_tile = vec3(0.5, 0.5, 0.);
 
-	vec2 center_vmax = texture(tiled_velocity, SCREEN_UV).xy - 0.5;
-	float variance = 0.;
-	float sum = dot(center_vmax, center_vmax);
 	for (float i = -1.; i < 1.5; i++)
 	{
 		for (float j = -1.; j < 1.5; j++)

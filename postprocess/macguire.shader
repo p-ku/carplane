@@ -29,13 +29,20 @@ vec4 correct(vec3 pixel_vel)
 	// return vec4(corrected, pixel_vel.z, length(corrected));
 }
 
-float halton3(vec2 frag) // https://www.gsn-lib.org/apps/raytracing/index.php?name=example_halton
+float halton(float base, vec2 frag) // https://www.gsn-lib.org/apps/raytracing/index.php?name=example_halton
 {
-	float short_frag = floor(dot(vec2(dim_check.y, dim_check.x), frag));
-	float long_frag = ceil(dot(dim_check, frag));
+	float long_frag = floor(dot(vec2(dim_check.y, dim_check.x), frag));
+	float short_frag = ceil(dot(dim_check, frag));
+
+	// float long_frag = floor(dot(vec2(dim_check.y, dim_check.x), frag));
+	// float short_frag = ceil(dot(dim_check, frag));
+	//	bool even_odd = int(short_frag) % 2 == 0;
+	//	vec2 eo_vec = vec2(float(even_odd), float(!even_odd));
+	//	vec2 long_vec = vec2(long_frag, float(long_dim) - long_frag);
+	//	int n = int(dot(long_vec, eo_vec) + float(long_dim) * short_frag);
 
 	int n = int(long_frag + float(long_dim) * short_frag);
-	float base = 3.;
+	// float base = 3.;
 	float r = 0.0;
 	float f = 1.0;
 	while (n > 0)
@@ -47,12 +54,29 @@ float halton3(vec2 frag) // https://www.gsn-lib.org/apps/raytracing/index.php?na
 	return r;
 }
 
+float dither(vec2 frag)
+{
+	vec2 dither = fract(frag / 2.);
+	float dither_amt = 0.;
+
+	if (dither.x < 0.5 && dither.y < 0.5)
+		dither_amt += 0.25;
+	if (dither.y < 0.5)
+		dither_amt += 0.25;
+	if (dither.x > 0.5 && dither.y > 0.5)
+		dither_amt += 0.75;
+	return dither_amt;
+}
+
 vec3 filter(vec2 uv, vec2 frag)
 {
 	vec3 color_p = texture(color_buffer, uv).xyz;
 
-	float j = halton3(frag);
-	//	float j = halton3(uv);
+	float j = 0.5 * (halton(4, frag) + halton(3, frag));
+	//	j = halton(3, frag) * halton(6, frag);
+	j = halton(3, frag); // + halton(9, frag));
+
+	// float j = halton3(uv);
 
 	vec2 j_tile_falloff = 2. * abs(0.5 - fract(frag.xy / tile_size));
 	// vec2 j_tile_falloff = 2. * abs(0.5 - fract(uv / tile_uv));
@@ -129,11 +153,17 @@ vec3 filter(vec2 uv, vec2 frag)
 	}
 	//	return vec3(v_max.xy / tile_size + 0.5, 0.);
 	// return vec3(v_max.xy + 0.5, 0.);
-	//	return texture(neighbor_buffer, uv).xyz;
+	//	return vec3(j);
 	return result / total_weight;
 }
-
+void vertex()
+{
+	UV = 1. - UV;
+}
 void fragment()
 {
+	//	return texture(neighbor_buffer, uv).xyz;
 	COLOR = vec4(filter(SCREEN_UV, FRAGCOORD.xy), 1.);
+	//	COLOR = vec4(vec3(dither_amt), 1.);
+	//	COLOR = vec4(texture(velocity_buffer, SCREEN_UV, 1.));
 }

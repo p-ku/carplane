@@ -157,14 +157,6 @@ vec4 calculate_scattering(
 	return sky_color;
 }
 
-vec3 rayDirection(float fieldOfView, vec2 size, vec2 fragCoord)
-{
-	vec2 xy = fragCoord - size * 0.5;
-	float z = 0.5 * size.y / tan(radians(fieldOfView));
-
-	return vec3(xy, -z);
-}
-
 void vertex()
 {
 	POSITION = vec4(VERTEX, 1.0);

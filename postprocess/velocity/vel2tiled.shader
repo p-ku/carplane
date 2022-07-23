@@ -14,12 +14,12 @@ void fragment()
 {
 	vec3 max_tile = vec3(0.5, 0.5, 0.);
 
-	vec2 first_uv = floor(FRAGCOORD.xy) * tile_uv;
-	// vec2 first_uv = SCREEN_UV;
+	// vec2 first_uv = floor(FRAGCOORD.xy) * tile_uv;
+	//	vec2 first_uv = SCREEN_UV;
 
-	for (float i = first_uv.x; i < first_uv.x + tile_uv.x; i += inv_reso.x)
+	for (float i = SCREEN_UV.x; i < SCREEN_UV.x + tile_uv.x; i += inv_reso.x)
 	{
-		for (float j = first_uv.y; j < first_uv.y + tile_uv.y; j += inv_reso.y)
+		for (float j = SCREEN_UV.y; j < SCREEN_UV.y + tile_uv.y; j += inv_reso.y)
 		{
 			vec2 sample = texture(velocity_buffer, vec2(i, j)).xy;
 
