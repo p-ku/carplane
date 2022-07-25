@@ -9,13 +9,15 @@ public class CarCam : Camera
   float camAngle = 0f, MaxCamTurn;
   internal Transform PrevGlobalTransform = Transform.Identity;
   internal Transform PrevTransform;
-
+  ShaderMaterial velMat;
+  PostProcess postProc;
   OpenSimplexNoise noise = new OpenSimplexNoise();
   int noise_y = 0, curDir = 0;
   Car car;
   Tween camTween, stickTween;
   Vector3 desiredCamPos, Normal = Vector3.Forward, originLerp;
   internal Plane camPlane;
+  Vector3 blurAngle;
   Camera colorCam, velCam, debugCam;
   Vector3 overCar = Vector3.Forward;
   Transform targetTransform;
@@ -31,7 +33,8 @@ public class CarCam : Camera
     colorCam = (Camera)GetTree().Root.FindNode("ColorCam", true, false);
     velCam = (Camera)GetTree().Root.FindNode("VelocityCam", true, false);
     debugCam = (Camera)GetTree().Root.FindNode("DebugCam", true, false);
-
+    postProc = (PostProcess)GetTree().Root.FindNode("PostProcess", true, false);
+    MeshInstance velMesh = (MeshInstance)GetTree().Root.FindNode("VelocityMesh", true, false);
     MaxCamTurn = ninetyRad;
     lerpVal = MaxCamTurn / 400f;
 
@@ -45,6 +48,9 @@ public class CarCam : Camera
     originLerp = GlobalTransform.origin;
     overCar = car.GlobalTransform.origin;
     targetTransform = GlobalTransform;
+
+    velMat = velMesh.GetActiveMaterial(0) as ShaderMaterial;
+
   }
   public override void _PhysicsProcess(float delta)
   {
@@ -133,10 +139,35 @@ public class CarCam : Camera
         stickTween.Start();
       }
     }
+    if (blurAngle.x > 1.57f | blurAngle.y > 1.57f | blurAngle.z > 1.57f)// | camBlurAngle.Length() > 1.57f)
+    {
+      velMat.SetShaderParam("snap", true);
+      //  check = !check;
+    }
+    else velMat.SetShaderParam("snap", false);
 
+    velMat.SetShaderParam("cam_prev_pos", -ToLocal(PrevGlobalTransform.origin));
+    velMat.SetShaderParam("cam_prev_xform", PrevGlobalTransform.basis.Inverse() * GlobalTransform.basis);
 
     // Useful for troubleshooting motion blur.
     GlobalTransform = new Transform(targetTransform.basis.Rotated(car.Normal, camAngle), targetTransform.origin.Rotated(car.Normal, camAngle));
+    //  if ((float)Time.GetTicksMsec() % 1000 < 500)
+    //    GlobalTransform = GlobalTransform.Rotated(car.Normal, (float)Time.GetTicksMsec() / 110);
+    //  else
+    //    GlobalTransform = GlobalTransform.Rotated(car.Normal, (float)Time.GetTicksMsec() / -110);
+
+    // GlobalTransform = GlobalTransform.Rotated(car.Normal, Mathf.Sin((float)Time.GetTicksMsec() / -50));
+
+    //   postProc.processVelocity();
+    blurAngle.x = PrevGlobalTransform.basis.x.AngleTo(GlobalTransform.basis.x);
+    blurAngle.y = PrevGlobalTransform.basis.y.AngleTo(GlobalTransform.basis.y);
+    blurAngle.z = PrevGlobalTransform.basis.z.AngleTo(GlobalTransform.basis.z);
+    //}
+    //  else { check = !check; }
+
+
+
+    //RotationDegrees = RotationDegrees * 10;
     //GlobalTransform = new Transform(targetTransform.basis, targetTransform.origin).Translated(Vector3.Right * camAngle);
 
     // Intended for use.
@@ -161,9 +192,10 @@ public class CarCam : Camera
     //   }
     //   else velm.mat.SetShaderParam("snap", false);
   }
-
-
-
+  public override void _Process(float delta)
+  {
+    //   postProc.processVelocity();
+  }
   void cameraShake(float rotFactor, float transFactor)
   {
     noise_y += 1;

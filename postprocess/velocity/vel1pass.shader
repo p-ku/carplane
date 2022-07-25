@@ -4,21 +4,23 @@
 shader_type spatial;
 render_mode depth_test_disable, depth_draw_never, unshaded;
 
+uniform sampler2D car_mask;
 uniform vec3 cam_prev_pos;	 // Previous position of the camera.
 uniform mat3 cam_prev_xform; // Used to transform between current and previous camera rotation
 uniform bool snap = false;
 uniform vec2 res_depth_vec;
 uniform vec2 uv_depth_vec;
-uniform float tile_uv;
+uniform vec2 tile_uv;
 uniform vec2 reso;
-const float tile_size = 40.;
-const float eps = 10e-5;
-const float shutter_angle = 0.5;
+uniform vec2 inv_reso;
+uniform float tile_size = 40.;
+const float eps = 0.00001;
+uniform float shutter_angle = 0.5;
 
 void vertex()
 {
 	POSITION = vec4(VERTEX, 1.0);
-	UV = UV + 1.;
+	//	UV = UV + 1.;
 }
 
 void fragment()
@@ -27,29 +29,43 @@ void fragment()
 
 	vec2 pix_half_blur = vec2(0.5);
 	vec2 uv_half_blur = vec2(0.5);
+	vec2 half_blur = vec2(0.5);
 
-	if (!snap)
+	bool blur_it = texture(car_mask, SCREEN_UV).a == 0.;
+
+	if (!snap && blur_it)
 	{
 		// Get pixel position relative to the camera.
 		vec3 pixel_pos_ndc = vec3(SCREEN_UV, depth) * 2.0 - 1.0;
 		vec4 pixel_pos = INV_PROJECTION_MATRIX * vec4(pixel_pos_ndc, 1.0);
 		pixel_pos.xyz /= pixel_pos.w;
-
 		vec3 prev_pixel_pos = cam_prev_xform * pixel_pos.xyz;
 
 		if (depth < 1.)
 			prev_pixel_pos += (pixel_pos.xyz - cam_prev_pos);
 
-		vec2 frag_prev = reso * 0.5 - prev_pixel_pos.xy * res_depth_vec / prev_pixel_pos.z;
-		vec2 frag_vel = (FRAGCOORD.xy - frag_prev);
-		float vel_mag = length(frag_vel);
-		pix_half_blur = 0.5 + 0.5 * frag_vel * clamp(vel_mag * shutter_angle, 0.5, tile_size) / (tile_size * (vel_mag + eps));
+		//	vec2 frag_prev = reso * 0.5 - prev_pixel_pos.xy * res_depth_vec / prev_pixel_pos.z;
+		//	vec2 frag_vel = (FRAGCOORD.xy - frag_prev);
+		//	float vel_mag = length(frag_vel);
+		//	half_blur = 0.5 + 0.5 * frag_vel * clamp(vel_mag * shutter_angle, 0.5, tile_size) / (tile_size * (vel_mag + eps));
 
 		//	vec2 uv_prev = 0.5 - prev_pixel_pos.xy * uv_depth_vec / prev_pixel_pos.z;
 		//	vec2 uv_vel = (SCREEN_UV - uv_prev);
 		//	float vel_mag = length(uv_vel);
-		//	uv_half_blur = 0.5 + 0.5 * uv_vel * clamp(vel_mag * shutter_angle, 0.5, tile_uv) / (tile_uv * (vel_mag + eps));
-	}
+		//	vec2 clamped_vel = clamp(vec2(vel_mag * shutter_angle), inv_reso * 0.5, tile_uv);
+		//	uv_half_blur = 0.5 + 0.5 * uv_vel * clamped_vel / (tile_uv * (vel_mag + eps));
 
-	ALBEDO = vec3(pix_half_blur, depth);
+		vec2 uv_prev = 0.5 - prev_pixel_pos.xy * uv_depth_vec / prev_pixel_pos.z;
+		vec2 uv_vel = (SCREEN_UV - uv_prev) * reso;
+		float vel_mag = length(uv_vel);
+		vec2 clamped_vel = max(min(vec2(vel_mag * shutter_angle), tile_size), 0.5);
+		half_blur = 0.5 + 0.5 * uv_vel * clamped_vel / (tile_size * (vel_mag + eps));
+	}
+	ALBEDO = vec3(half_blur, depth);
+
+	//	ALBEDO = vec3(clamp(half_blur, 0.0001, 0.999), depth);
+	//	ALBEDO = vec3(depth);
+
+	// if (blur_it)
+	//	ALBEDO = vec3(1., 0., depth);
 }

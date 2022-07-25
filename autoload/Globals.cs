@@ -30,7 +30,6 @@ public class Globals : Node
     aspectRatio = renderRes.x / renderRes.y;
     atmoHeight = AtmoRadius - planet_radius;
     GD.Randomize();
-
   }
   /*   float lerp(float firstFloat, float secondFloat, float by)
 	{ return firstFloat * (1F - by) + secondFloat * by; }
