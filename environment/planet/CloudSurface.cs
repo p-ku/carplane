@@ -24,8 +24,8 @@ public class CloudSurface : MeshInstance
   //  // Called every frame. 'delta' is the elapsed time since the previous frame.
   public override void _PhysicsProcess(float delta)
   {
-    float ang = Mathf.Asin(vars.planet_radius / 20f);
-    float d = vars.planet_radius / Mathf.Tan(ang);
+    float ang = Mathf.Asin(vars.PlanetRadius / 20f);
+    float d = vars.PlanetRadius / Mathf.Tan(ang);
     //float circ =
     //float cRad = Mathf.Sqrt(400.+);
     //newTransform.origin = new Vector3(0f, 0f, -car.GlobalTransform.origin.z);

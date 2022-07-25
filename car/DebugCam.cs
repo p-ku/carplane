@@ -9,8 +9,8 @@ public class DebugCam : Camera
   }
   public override void _Process(float delta)
   {
-	Far = GlobalTransform.origin.Length() + vars.planet_radius * 0.5f;
-	Near = Mathf.Tan(vars.FovHalfRad.y) * (GlobalTransform.origin.Length() - vars.planet_radius - 4);
+	Far = GlobalTransform.origin.Length() + vars.PlanetRadius * 0.5f;
+	Near = Mathf.Tan(vars.FovHalfRad.y) * (GlobalTransform.origin.Length() - vars.PlanetRadius - 4);
 	if (Input.IsKeyPressed(87))
 	  Translation -= new Vector3(0, 0, 0.1f);
 	if (Input.IsKeyPressed(83))

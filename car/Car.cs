@@ -172,7 +172,7 @@ public class Car : VehicleBody
   {
 	Normal = GlobalTransform.origin.Normalized();
 	OriginLength = GlobalTransform.origin.Length();
-	Altitude = OriginLength - vars.planet_radius;
+	Altitude = OriginLength - vars.PlanetRadius;
 	//wind.z = -normal.x;
 	//wind.x = normal.z;
 	//wind.Normalized();

@@ -9,6 +9,8 @@ public class CarCam : Camera
   float camAngle = 0f, MaxCamTurn;
   internal Transform PrevGlobalTransform = Transform.Identity;
   internal Transform PrevTransform;
+  internal float Altitude;
+
   ShaderMaterial velMat;
   PostProcess postProc;
   OpenSimplexNoise noise = new OpenSimplexNoise();
@@ -72,12 +74,12 @@ public class CarCam : Camera
     Vector3 toAnchor = (desiredCamPos - overCar).Normalized();
     desiredCamPos = overCar + toAnchor * 5f;
 
-    horizonAng = Mathf.Acos(vars.planet_radius / overCarLength);
+    horizonAng = Mathf.Acos(vars.PlanetRadius / overCarLength);
     Normal = overCar.Normalized();
 
     Vector3 lookTarget = toAnchor.Rotated(Normal, -ninetyRad);
     lookTarget = Normal.Rotated(lookTarget, horizonAng);
-    lookTarget = vars.planet_radius * lookTarget;
+    lookTarget = vars.PlanetRadius * lookTarget;
 
     targetTransform = new Transform(targetTransform.basis, desiredCamPos);
     targetTransform = targetTransform.LookingAt(lookTarget, desiredCamPos);
@@ -157,7 +159,7 @@ public class CarCam : Camera
     //    GlobalTransform = GlobalTransform.Rotated(car.Normal, (float)Time.GetTicksMsec() / -110);
 
     // GlobalTransform = GlobalTransform.Rotated(car.Normal, Mathf.Sin((float)Time.GetTicksMsec() / -50));
-
+    Altitude = GlobalTransform.origin.Length() - vars.PlanetRadius;
     //   postProc.processVelocity();
     blurAngle.x = PrevGlobalTransform.basis.x.AngleTo(GlobalTransform.basis.x);
     blurAngle.y = PrevGlobalTransform.basis.y.AngleTo(GlobalTransform.basis.y);

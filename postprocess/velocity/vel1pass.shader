@@ -8,10 +8,10 @@ uniform sampler2D car_mask;
 uniform vec3 cam_prev_pos;	 // Previous position of the camera.
 uniform mat3 cam_prev_xform; // Used to transform between current and previous camera rotation
 uniform bool snap = false;
-uniform vec2 res_depth_vec;
+uniform float res_depth_vec;
 uniform vec2 uv_depth_vec;
 uniform vec2 tile_uv;
-uniform vec2 reso;
+uniform vec2 half_reso;
 uniform vec2 inv_reso;
 uniform float tile_size = 40.;
 const float eps = 0.00001;
@@ -27,8 +27,8 @@ void fragment()
 {
 	float depth = texture(DEPTH_TEXTURE, SCREEN_UV).r;
 
-	vec2 pix_half_blur = vec2(0.5);
-	vec2 uv_half_blur = vec2(0.5);
+	//	vec2 pix_half_blur = vec2(0.5);
+	//	vec2 uv_half_blur = vec2(0.5);
 	vec2 half_blur = vec2(0.5);
 
 	bool blur_it = texture(car_mask, SCREEN_UV).a == 0.;
@@ -44,10 +44,11 @@ void fragment()
 		if (depth < 1.)
 			prev_pixel_pos += (pixel_pos.xyz - cam_prev_pos);
 
-		//	vec2 frag_prev = reso * 0.5 - prev_pixel_pos.xy * res_depth_vec / prev_pixel_pos.z;
-		//	vec2 frag_vel = (FRAGCOORD.xy - frag_prev);
-		//	float vel_mag = length(frag_vel);
-		//	half_blur = 0.5 + 0.5 * frag_vel * clamp(vel_mag * shutter_angle, 0.5, tile_size) / (tile_size * (vel_mag + eps));
+		vec2 frag_prev = half_reso - prev_pixel_pos.xy * res_depth_vec / prev_pixel_pos.z;
+		vec2 frag_vel = (FRAGCOORD.xy - frag_prev);
+		float vel_mag = length(frag_vel);
+		float clamped_vel = max(min(vel_mag * shutter_angle, tile_size), 0.5);
+		half_blur = 0.5 + 0.5 * frag_vel * clamped_vel / (tile_size * (vel_mag + eps));
 
 		//	vec2 uv_prev = 0.5 - prev_pixel_pos.xy * uv_depth_vec / prev_pixel_pos.z;
 		//	vec2 uv_vel = (SCREEN_UV - uv_prev);
@@ -55,11 +56,11 @@ void fragment()
 		//	vec2 clamped_vel = clamp(vec2(vel_mag * shutter_angle), inv_reso * 0.5, tile_uv);
 		//	uv_half_blur = 0.5 + 0.5 * uv_vel * clamped_vel / (tile_uv * (vel_mag + eps));
 
-		vec2 uv_prev = 0.5 - prev_pixel_pos.xy * uv_depth_vec / prev_pixel_pos.z;
-		vec2 uv_vel = (SCREEN_UV - uv_prev) * reso;
-		float vel_mag = length(uv_vel);
-		vec2 clamped_vel = max(min(vec2(vel_mag * shutter_angle), tile_size), 0.5);
-		half_blur = 0.5 + 0.5 * uv_vel * clamped_vel / (tile_size * (vel_mag + eps));
+		//	vec2 uv_prev = 0.5 - prev_pixel_pos.xy * uv_depth_vec / prev_pixel_pos.z;
+		//	vec2 uv_vel = (SCREEN_UV - uv_prev) * reso;
+		//	float vel_mag = length(uv_vel);
+		//	float clamped_vel = max(min(vel_mag * shutter_angle, tile_size), 0.5);
+		//	half_blur = 0.5 + 0.5 * uv_vel * clamped_vel / (tile_size * (vel_mag + eps));
 	}
 	ALBEDO = vec3(half_blur, depth);
 

@@ -6,7 +6,7 @@ public class PostProcess : Node
 {
   // CarCam cam;
   CarCam leadCam;
-
+  float tanDistAtmo;
   Camera velCam, colorCam, debugCam;
   ColorRect staticBlur;
   internal ShaderMaterial velMat;
@@ -19,6 +19,10 @@ public class PostProcess : Node
   float blurAmount = 0.5f;
   [Export(PropertyHint.Range, "3,35")]
   uint blurSteps = 7;
+  [Export(PropertyHint.Range, "1,80")]
+  float maxBlurRadius = 7f;
+  [Export(PropertyHint.Range, "0.1,1")]
+  float atmoQuality = 0.2f;
   static float nn = 0.95f, gamma = 1.5f, phi = 27;
   float j_prime_term;
   float kk;
@@ -92,12 +96,14 @@ public class PostProcess : Node
 	ViewportTexture variBuff = neighborView.GetTexture();
 	ViewportTexture neighborBuff = neighborView.GetTexture();
 
-	Vector2 halfResoSq = vars.renderRes * vars.renderRes * 0.25f;
+	Vector2 halfReso = vars.renderRes * 0.5f;
+
+	Vector2 halfResoSq = halfReso * halfReso;
 
 	Vector2 halfUvDepthVec = new Vector2(Mathf.Tan(vars.FovHalfRad.x), Mathf.Tan(vars.FovHalfRad.y));
 
-	Vector2 resDepthVec = 0.5f * velView.Size / halfUvDepthVec;
-	Vector2 uvDepthVec = new Vector2(0.5f, 0.5f) / halfUvDepthVec;
+	float resDepthVec = 0.5f * velView.Size.y / halfUvDepthVec.y;
+	Vector2 uvDepthVec = 0.5f * Vector2.One / halfUvDepthVec;
 
 	Vector2 invReso = Vector2.One / vars.renderRes;
 	//Vector2 tileUV = new Vector2(blurTileSize, blurTileSize) / velView.Size;
@@ -113,7 +119,7 @@ public class PostProcess : Node
 
 	velMat.SetShaderParam("shutter_angle", blurAmount);
 
-	velMat.SetShaderParam("reso", vars.renderRes);
+	velMat.SetShaderParam("half_reso", halfReso);
 	velMat.SetShaderParam("car_mask", carBuff);
 
 	velCam.Visible = true;
@@ -140,11 +146,16 @@ public class PostProcess : Node
 	atmoMat.SetShaderParam("atmo_height", vars.atmoHeight);
 	atmoMat.SetShaderParam("atmo_rad", vars.AtmoRadius);
 	atmoMat.SetShaderParam("atmo_rad_sq", vars.AtmoRadius * vars.AtmoRadius);
-	float tanDist = vars.PlanetRadius * Mathf.Tan(Mathf.Acos(vars.PlanetRadius / vars.AtmoRadius));
-	atmoMat.SetShaderParam("tangent_dist", tanDist);
-	float cloudTanDist = vars.CloudRadius * Mathf.Tan(Mathf.Acos(vars.CloudRadius / vars.AtmoRadius));
-	atmoMat.SetShaderParam("cloud_tangent_dist", vars.AtmoRadius * vars.AtmoRadius);
-	atmoMat.SetShaderParam("dist_factor", vars.planet_radius * vars.AtmoRadius);
+	tanDistAtmo = vars.PlanetRadius * Mathf.Tan(Mathf.Acos(vars.PlanetRadius / vars.AtmoRadius));
+	//  atmoMat.SetShaderParam("tangent_dist", tanDist);
+	// float cloudTanDist = vars.CloudRadius * Mathf.Tan(Mathf.Acos(vars.CloudRadius / vars.AtmoRadius));
+	// atmoMat.SetShaderParam("cloud_tangent_dist", vars.AtmoRadius * vars.AtmoRadius);
+	atmoMat.SetShaderParam("dist_factor", vars.PlanetRadius * vars.AtmoRadius);
+	atmoMat.SetShaderParam("plan_res_depth_vec", resDepthVec * vars.PlanetRadius);
+	atmoMat.SetShaderParam("half_vert_reso", halfReso.y);
+	atmoMat.SetShaderParam("atmo_height_sq", vars.atmoHeight * vars.atmoHeight);
+	atmoMat.SetShaderParam("car_mask", carBuff);
+	atmoMat.SetShaderParam("quality", atmoQuality);
 
 	// Create final image.
 	(staticBlur.Material as ShaderMaterial).SetShaderParam("velocity_buffer", velBuff);
@@ -183,6 +194,13 @@ public class PostProcess : Node
 	atmoMat.SetShaderParam("f2", factor2);
 	atmoMat.SetShaderParam("f3", factor3);
 	atmoMat.SetShaderParam("f4", factor4);
+
+	float tanDist = vars.PlanetRadius * Mathf.Tan(Mathf.Acos(vars.PlanetRadius / leadCam.Altitude));
+	tanDist = Mathf.Max(tanDistAtmo, tanDist);
+	atmoMat.SetShaderParam("tangent_dist", tanDist);
+	atmoMat.SetShaderParam("cam_dist", leadCam.GlobalTransform.origin.Length());
+	atmoMat.SetShaderParam("cam_alt", leadCam.GlobalTransform.origin.Length() - vars.PlanetRadius);
+
 	// atmoMat.SetShaderParam("cam_pos", cam.GlobalTransform);
 	processVelocity();
 
@@ -195,16 +213,16 @@ public class PostProcess : Node
 	//   debugCam.Near = Mathf.Tan(vars.FovHalfRad.y) * (debugCam.GlobalTransform.origin.Length() - vars.planet_radius - 4);
 
 	velCam.GlobalTransform = leadCam.GlobalTransform;
-	velCam.Far = leadCam.GlobalTransform.origin.Length() + vars.planet_radius * 0.5f;
-	velCam.Near = Mathf.Tan(vars.FovHalfRad.y) * (leadCam.GlobalTransform.origin.Length() - vars.planet_radius - 4);
+	velCam.Far = leadCam.GlobalTransform.origin.Length() + vars.PlanetRadius * 0.5f;
+	velCam.Near = Mathf.Tan(vars.FovHalfRad.y) * (leadCam.GlobalTransform.origin.Length() - vars.PlanetRadius - 4f);
 
 	colorCam.GlobalTransform = leadCam.GlobalTransform;
 	colorCam.Far = velCam.Far;
 	colorCam.Near = velCam.Near;
 
 	//  debugCam.Near = 2;
-	colorCam.Near = 2;
-	velCam.Near = 2;
+	colorCam.Near = 2f;
+	velCam.Near = 2f;
 	//	atmoMat.SetShaderParam("cam_pos", leadCam.GlobalTransform);
 
 

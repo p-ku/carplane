@@ -118,24 +118,30 @@ shader_param/snap = false
 shader_param/res_depth_vec = null
 shader_param/uv_depth_vec = null
 shader_param/tile_uv = null
-shader_param/reso = null
+shader_param/half_reso = null
 shader_param/inv_reso = null
 shader_param/tile_size = 40.0
 shader_param/shutter_angle = 0.5
 
 [sub_resource type="ShaderMaterial" id=127]
 shader = ExtResource( 22 )
+shader_param/quality = null
+shader_param/half_vert_reso = null
 shader_param/tangent_dist = null
 shader_param/plan_rad = 26.0
-shader_param/plan_rad_sq = 26.0
-shader_param/atmo_height = null
-shader_param/atmo_rad = null
-shader_param/dist_factor = null
-shader_param/atmo_rad_sq = null
-shader_param/f1 = null
-shader_param/f2 = null
-shader_param/f3 = null
-shader_param/f4 = null
+shader_param/plan_rad_sq = 676.0
+shader_param/cam_dist = 50.0
+shader_param/cam_alt = 20.0
+shader_param/plan_res_depth_vec = null
+shader_param/atmo_height = 24.0
+shader_param/atmo_height_sq = null
+shader_param/atmo_rad = 50.0
+shader_param/dist_factor = 0.0
+shader_param/atmo_rad_sq = 2500.0
+shader_param/f1 = 0.0
+shader_param/f2 = 0.0
+shader_param/f3 = 0.0
+shader_param/f4 = 0.0
 shader_param/light_direction = Vector3( 0, 0, 1 )
 
 [node name="Main" type="Node"]
@@ -230,6 +236,7 @@ omni_range = 49.246
 
 [node name="PostProcess" type="Node" parent="."]
 script = ExtResource( 13 )
+atmoQuality = 0.1
 
 [node name="TiledDemo" type="ColorRect" parent="PostProcess"]
 visible = false
@@ -389,7 +396,6 @@ near = 2.0
 far = 500.0
 
 [node name="AtmoMesh" type="MeshInstance" parent="PostProcess/ColorBuffer/ColorCam"]
-visible = false
 layers = 8
 extra_cull_margin = 16384.0
 generate_lightmap = false
