@@ -25,7 +25,7 @@ uniform float cam_dist;						// distance from tangent of planet to atmo
 uniform float cam_alt;						// distance from tangent of planet to atmo
 uniform float plan_res_depth_vec;
 uniform sampler2D velocity_buffer; // Velocity and depth information
-uniform sampler2D car_mask;				 // Velocity and depth information
+uniform sampler2D no_blur_mask;		 // Velocity and depth information
 uniform float atmo_height;
 uniform float atmo_height_sq;
 uniform float atmo_rad; // the radius of the atmosphere
@@ -95,8 +95,7 @@ vec4 calculate_scattering(
 	bool hits_object = depth < 1.;
 
 	vec2 ray_length = vec2(max(thru.x, 0.0), hits_object ? max_dist : thru.y);
-	//	if (dist_to_surf < max_dist + 2. && dist_to_surf > max_dist - 2.)
-	//		ray_length.y = dist_to_surf;
+
 	//  if the ray did not hit the atmosphere, return a black color
 	if (ray_length.x > ray_length.y)
 		return vec4(0.);
@@ -104,39 +103,31 @@ vec4 calculate_scattering(
 	float ray_pos_i = ray_length.x;
 
 	// these are the values we use to gather all the scattered light
-	//	float full_path = ray_length.y - ray_length.x;
-	// float thru_path = thru.y - thru.x;
 	float full_path = ray_length.y - ray_length.x;
-	float steps_raw = full_path;
+	float steps_raw = full_path * quality;
+	int steps_i;
 	if (hits_object)
 	{
 		float cp = startMagSq - plan_rad_sq;
 		float dp = bb - 4.0 * cp;
-		//	full_path = to_planet_surf < max_dist + 2. ? to_planet_surf : max_dist;
-		//
-		//	full_path = cam_alt > atmo_height * 0.4 && to_planet_surf < max_dist + 2. ? to_planet_surf : max_dist;
-		//
-		//	if (cam_alt > atmo_height * 0.4 && to_planet_surf < max_dist + 2.)
-		//		full_path = mix(to_planet_surf, max_dist, (cam_alt - atmo_height * 0.4) / (atmo_height * 0.1));
-		//	else
-		//		full_path = max_dist;
+
 		if (dp > 0.)
 		{
 			float to_planet_surf = (-b - sqrt(dp)) * 0.5;
-			//	if (to_planet_surf > 0.)
-			//	if (to_planet_surf < max_dist + 2.)
-			//		full_path = mix(max_dist, to_planet_surf, clamp((cam_alt - atmo_height * 0.4) / (atmo_height * 0.1), 0., 1.));
-			//		if (to_planet_surf < max_dist + 2. && cam_alt > atmo_height * 0.5)
-			if (to_planet_surf < max_dist + 3. && texture(car_mask, uv).a == 0.)
+
+			if (to_planet_surf < max_dist + 3. && texture(no_blur_mask, uv).a == 0.)
 			{
 				full_path = to_planet_surf - ray_length.x;
-				steps_raw = startMag;
+				steps_raw = startMag * quality;
 			}
 		}
-		//	full_path = to_planet_surf < max_dist + 2. ? to_planet_surf : max_dist;
-		//
-		//	full_path = mix(max_dist, to_planet_surf, 2. * (cam_alt - 0.5) / atmo_height);
+		steps_i = int(max(steps_raw, 1.))
 	}
+	else
+		steps_i = int(round(max(steps_raw, 0.)));
+
+	float step_size_i = full_path / float(steps_i);
+	float half_step_i = 0.5 * step_size_i;
 
 	// initialize the optical depth. This is used to calculate how much air was in the ray
 	vec2 opt_i = vec2(0.);
@@ -160,60 +151,8 @@ vec4 calculate_scattering(
 	mat4 cloud_ray = mat4(0.);
 	mat4 cloud_mie = mat4(0.);
 
-	//	float steps_raw = 0.3 * atmo_height * full_path / tangent_dist;
-	//
-	//	if (hits_object)
-	//		// if (max_dist == ray_length.y)
-	//		steps_raw = max(steps_raw, 0.15 * atmo_height);
-	//
-	//	steps_raw /= (1. + ray_length.x / full_path);
-
-	//	if (hits_object)
-	//	{
-	//		steps_raw = 0.3 * atmo_height;
-	//		steps_raw /= (1. + (max(length(start) - atmo_rad, 0.)) / tangent_dist);
-	//		steps_i = int(round(steps_raw));
-	//		step_size_i = tangent_dist / float(steps_i);
-	//		half_step_i = 0.5 * step_size_i;
-	//	}
-
-	//	float steps_raw = 0.3 * atmo_height * full_path / atmo_rad;
-	//
-	//	// if (hits_object)
-	//	if (max_dist == ray_length.y)
-	//		steps_raw = max(steps_raw, 0.15 * atmo_height);
-	//
-	//	steps_raw /= (1. + ray_length.x / full_path);
-	//
-	//	int steps_i = int(round(steps_raw));
-	//	float step_size_i = full_path / float(steps_i);
-	//	float half_step_i = 0.5 * step_size_i;
-
-	//	float steps_raw = hits_object ? dist_to_surf : full_path;
-	// float steps_raw = full_path;
-	// if (ray_length.x > 0.)
-	// steps_raw -= ray_length.x / full_path;
-
-	steps_raw *= quality;
-	// steps_raw -= min(ray_length.x, atmo_rad * 0.1); /// atmo_rad;
-
-	// steps_raw = full_path * 0.3 - ray_length.x;
-
-	// float steps_raw = full_path * 0.3 - 1. / (ray_length.x + 1.);
-	// steps_raw /= (1. + ray_length.x / steps_raw);
-	// int steps_i = hits_object ? int(steps_raw + 2.) : int(floor(steps_raw));
-	//	int steps_i = int(round(steps_raw));
-	int steps_i = hits_object ? int(max(steps_raw, 1.)) : int(round(max(steps_raw, 0.)));
-	// int steps_i = int(ceil(steps_raw));
-
-	//	if (steps_raw > float(steps_i) + 1.)
-	//		steps_raw -= (ray_length.x - 1.) / full_path;
-	float step_size_i = full_path / float(steps_i);
-	float half_step_i = 0.5 * step_size_i;
-
 	for (int i = 0; i < steps_i; ++i)
 	{
-
 		vec3 pos_i = start + dir * (ray_pos_i + half_step_i);
 		float height_i = length(pos_i) - plan_rad;
 		vec2 density = exp(-height_i / scale_height) * step_size_i;
@@ -232,10 +171,6 @@ vec4 calculate_scattering(
 	}
 	float opacity = 1. - length(exp(-(beta_ray0 * opt_i.x + 1.1 * beta_mie0 * opt_i.y)));
 
-	//	opacity *= plan_rad * plan_rad / ((cam_alt - plan_rad) * (cam_alt - plan_rad));
-	//	opacity -= (max_dist * max_dist - plan_rad) / dist_factor;
-	//  opacity = min(opacity / max_dist, 0.3);
-	//	opacity = hits_object && max_dist > plan_rad * 2. ? min(opacity, 0.25) : opacity;
 	vec4 sky_color = vec4(ray_constant * cloud_ray[0].xyz + mie_constant * cloud_mie[0].xyz, opacity);
 
 	sky_color.xyz *= intensity;

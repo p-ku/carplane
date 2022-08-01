@@ -5,7 +5,7 @@ public class Globals : Node
 {
   internal float lVert, lHori, debugFloat, fps, Clift, liftAng;
   internal float cam_alt, MaxBlurAngleRad, MaxBlurAngleDeg;
-  internal float AtmoRadius = 50f, PlanetRadius = 26f, CloudRadius = 31f, atmoHeight;
+  internal float AtmoRadius = 100f, PlanetRadius = 26f, CloudRadius = 31f, atmoHeight;
   internal float sun_ang, DragMag, AngDamp, aspectRatio;
   internal Vector2 renderRes = new Vector2(1280, 720), displayRes, FovRad, FovDeg, FovHalfDeg, FovHalfRad;
   internal Vector3 LinVel, cam_pos, LocLinVel, Lift;
