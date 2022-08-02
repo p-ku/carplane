@@ -1,35 +1,35 @@
 [gd_scene load_steps=37 format=2]
 
-[ext_resource path="res://car/CarCam.cs" type="Script" id=1]
-[ext_resource path="res://postprocess/MotionBlur/vel2tiled.shader" type="Shader" id=2]
-[ext_resource path="res://environment/planet/plainSphere.tres" type="ArrayMesh" id=3]
-[ext_resource path="res://environment/planet/Redmars-Normal-8k.png" type="Texture" id=4]
-[ext_resource path="res://postprocess/MotionBlur/macguire.shader" type="Shader" id=5]
-[ext_resource path="res://postprocess/MotionBlur/MotionBlur.cs" type="Script" id=6]
-[ext_resource path="res://postprocess/AtmoMesh.cs" type="Script" id=7]
-[ext_resource path="res://autoload/DebugOverlay.cs" type="Script" id=8]
-[ext_resource path="res://environment/planet/Mars_8k-050104.png" type="Texture" id=9]
-[ext_resource path="res://postprocess/MotionBlur/vel1pass.shader" type="Shader" id=10]
-[ext_resource path="res://postprocess/screenMesh.tres" type="ArrayMesh" id=11]
-[ext_resource path="res://car/car.tscn" type="PackedScene" id=12]
-[ext_resource path="res://assets/FireMask.png" type="Texture" id=14]
-[ext_resource path="res://sounds/satBeep.wav" type="AudioStream" id=15]
-[ext_resource path="res://assets/HDR_Solar_system.png" type="Texture" id=17]
-[ext_resource path="res://environment/sun/sun.shader" type="Shader" id=18]
-[ext_resource path="res://postprocess/MotionBlur/vel3final.shader" type="Shader" id=19]
-[ext_resource path="res://environment/planet/mars_glossy.png" type="Texture" id=21]
-[ext_resource path="res://postprocess/atmoOnly.shader" type="Shader" id=22]
+[ext_resource path="res://postprocess/MotionBlur/macguire.shader" type="Shader" id=1]
+[ext_resource path="res://car/CarCam.cs" type="Script" id=2]
+[ext_resource path="res://environment/planet/Mars_8k-050104.png" type="Texture" id=3]
+[ext_resource path="res://postprocess/MotionBlur/vel1pass.shader" type="Shader" id=4]
+[ext_resource path="res://assets/FireMask.png" type="Texture" id=5]
+[ext_resource path="res://postprocess/screenMesh.tres" type="ArrayMesh" id=6]
+[ext_resource path="res://assets/HDR_Solar_system.png" type="Texture" id=7]
+[ext_resource path="res://sounds/satBeep.wav" type="AudioStream" id=8]
+[ext_resource path="res://environment/sun/sun.shader" type="Shader" id=9]
+[ext_resource path="res://postprocess/MotionBlur/vel3final.shader" type="Shader" id=10]
+[ext_resource path="res://environment/planet/mars_glossy.png" type="Texture" id=11]
+[ext_resource path="res://postprocess/atmoOnly.shader" type="Shader" id=12]
+[ext_resource path="res://car/car.tscn" type="PackedScene" id=13]
+[ext_resource path="res://postprocess/AtmoMesh.cs" type="Script" id=14]
+[ext_resource path="res://postprocess/MotionBlur/MotionBlur.cs" type="Script" id=15]
+[ext_resource path="res://postprocess/MotionBlur/vel2tiled.shader" type="Shader" id=16]
+[ext_resource path="res://environment/planet/Redmars-Normal-8k.png" type="Texture" id=17]
+[ext_resource path="res://environment/planet/plainSphere.tres" type="ArrayMesh" id=18]
+[ext_resource path="res://autoload/DebugOverlay.cs" type="Script" id=19]
 
 [sub_resource type="SphereShape" id=4]
 radius = 26.0
 
 [sub_resource type="SpatialMaterial" id=71]
 params_specular_mode = 4
-albedo_texture = ExtResource( 9 )
-roughness_texture = ExtResource( 21 )
+albedo_texture = ExtResource( 3 )
+roughness_texture = ExtResource( 11 )
 normal_enabled = true
 normal_scale = 1.0
-normal_texture = ExtResource( 4 )
+normal_texture = ExtResource( 17 )
 
 [sub_resource type="CubeMesh" id=16]
 
@@ -42,7 +42,7 @@ albedo_color = Color( 0.933333, 0.282353, 0.282353, 1 )
 radius = 400.0
 
 [sub_resource type="PanoramaSky" id=100]
-panorama = ExtResource( 17 )
+panorama = ExtResource( 7 )
 
 [sub_resource type="Environment" id=101]
 background_mode = 2
@@ -67,21 +67,21 @@ seamless = true
 noise = SubResource( 103 )
 
 [sub_resource type="ShaderMaterial" id=31]
-shader = ExtResource( 18 )
+shader = ExtResource( 9 )
 shader_param/emission_intensity = 1.0
 shader_param/time_scale = 0.1
 shader_param/texture_scale = Vector2( 0.01, 0.01 )
 shader_param/edge_softness = 0.1
 shader_param/sunSet = 0.0
 shader_param/noise_texture = SubResource( 104 )
-shader_param/texture_mask = ExtResource( 14 )
+shader_param/texture_mask = ExtResource( 5 )
 
 [sub_resource type="QuadMesh" id=32]
 material = SubResource( 31 )
 size = Vector2( 100, 100 )
 
 [sub_resource type="ShaderMaterial" id=127]
-shader = ExtResource( 22 )
+shader = ExtResource( 12 )
 shader_param/quality = null
 shader_param/half_vert_reso = null
 shader_param/tangent_dist = null
@@ -102,14 +102,23 @@ shader_param/f4 = 0.0
 shader_param/light_direction = Vector3( 0, 0, 1 )
 
 [sub_resource type="ShaderMaterial" id=122]
-shader = ExtResource( 5 )
+shader = ExtResource( 1 )
 shader_param/reso = null
 shader_param/tile_pixel_size = null
 shader_param/steps = null
 shader_param/j_prime_term = null
 
-[sub_resource type="ShaderMaterial" id=74]
+[sub_resource type="ShaderMaterial" id=121]
+shader = ExtResource( 16 )
+shader_param/inv_reso = null
+shader_param/tile_uv_size = null
+
+[sub_resource type="ShaderMaterial" id=120]
 shader = ExtResource( 10 )
+shader_param/tile_uv_size = null
+
+[sub_resource type="ShaderMaterial" id=74]
+shader = ExtResource( 4 )
 shader_param/cam_prev_pos = null
 shader_param/cam_prev_xform = null
 shader_param/snap = false
@@ -118,15 +127,6 @@ shader_param/half_reso = null
 shader_param/tile_pixel_size = null
 shader_param/shutter_angle = 0.5
 shader_param/all_blur = null
-
-[sub_resource type="ShaderMaterial" id=120]
-shader = ExtResource( 19 )
-shader_param/tile_uv_size = null
-
-[sub_resource type="ShaderMaterial" id=121]
-shader = ExtResource( 2 )
-shader_param/inv_reso = null
-shader_param/tile_uv_size = null
 
 [node name="Main" type="Node"]
 
@@ -144,7 +144,7 @@ __meta__ = {
 }
 
 [node name="Surface" type="MeshInstance" parent="Space/Planet"]
-mesh = ExtResource( 3 )
+mesh = ExtResource( 18 )
 material/0 = SubResource( 71 )
 __meta__ = {
 "_edit_lock_": true,
@@ -167,7 +167,7 @@ __meta__ = {
 shape = SubResource( 35 )
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="Space/StaticBody"]
-stream = ExtResource( 15 )
+stream = ExtResource( 8 )
 doppler_tracking = 2
 
 [node name="Gravity" type="Area" parent="Space"]
@@ -186,7 +186,7 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="Car" parent="Space" instance=ExtResource( 12 )]
+[node name="Car" parent="Space" instance=ExtResource( 13 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 25.9728, -8.66776 )
 
 [node name="ThrustTween" type="Tween" parent="Space/Car"]
@@ -222,7 +222,7 @@ omni_range = 49.246
 transform = Transform( -4.37114e-08, -0.583966, 0.811778, 0, 0.811778, 0.583966, -1, 2.5526e-08, -3.5484e-08, 5, 30.7, -12.7437 )
 cull_mask = 786431
 near = 2.0
-script = ExtResource( 1 )
+script = ExtResource( 2 )
 
 [node name="AtmoMesh" type="MeshInstance" parent="CarCam"]
 transform = Transform( -4.37114e-08, -1.77636e-15, -1, -0.583966, 0.811778, 2.5526e-08, 0.811778, 0.583966, -3.5484e-08, -4, 2.94824, -4.03845 )
@@ -233,11 +233,11 @@ layers = 262144
 cast_shadow = 0
 extra_cull_margin = 16384.0
 generate_lightmap = false
-mesh = ExtResource( 11 )
+mesh = ExtResource( 6 )
 skeleton = NodePath("")
 software_skinning_transform_normals = false
 material/0 = SubResource( 127 )
-script = ExtResource( 7 )
+script = ExtResource( 14 )
 
 [node name="StickTween" type="Tween" parent="CarCam"]
 
@@ -246,27 +246,88 @@ script = ExtResource( 7 )
 [node name="MotionBlur" type="ColorRect" parent="CarCam"]
 light_mask = 0
 material = SubResource( 122 )
-anchor_right = 1.0
+anchor_top = 0.5
+anchor_right = 0.5
 anchor_bottom = 1.0
-script = ExtResource( 6 )
+script = ExtResource( 15 )
 blurAmount = 1.0
+blurSteps = 7
+blurRadiusFactor = 1
 blurLayers = 1048573
 
-[node name="VelocityBuffer" type="Viewport" parent="CarCam/MotionBlur"]
-size = Vector2( 600, 240 )
+[node name="TileDemo" type="ViewportContainer" parent="CarCam/MotionBlur"]
+light_mask = 0
+material = SubResource( 121 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 640.0
+margin_top = -360.0
+margin_right = 640.0
+margin_bottom = -360.0
+stretch = true
+
+[node name="TiledBuffer" type="Viewport" parent="CarCam/MotionBlur/TileDemo"]
+size = Vector2( 640, 360 )
+handle_input_locally = false
+hdr = false
+disable_3d = true
+keep_3d_linear = true
+usage = 1
+debug_draw = 1
+render_target_v_flip = true
+render_target_update_mode = 3
+gui_disable_input = true
+
+[node name="TiledVelocity" type="ColorRect" parent="CarCam/MotionBlur/TileDemo/TiledBuffer"]
+material = SubResource( 121 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="NeighborDemo" type="ViewportContainer" parent="CarCam/MotionBlur"]
+light_mask = 0
+material = SubResource( 120 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 640.0
+margin_right = 640.0
+stretch = true
+
+[node name="NeighborBuffer" type="Viewport" parent="CarCam/MotionBlur/NeighborDemo"]
+size = Vector2( 640, 360 )
+handle_input_locally = false
+hdr = false
+disable_3d = true
+keep_3d_linear = true
+usage = 1
+debug_draw = 1
+render_target_update_mode = 3
+gui_disable_input = true
+
+[node name="NeighborVelocity" type="ColorRect" parent="CarCam/MotionBlur/NeighborDemo/NeighborBuffer"]
+material = SubResource( 120 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VelocityDemo" type="ViewportContainer" parent="CarCam/MotionBlur"]
+light_mask = 0
+margin_top = -360.0
+margin_right = 640.0
+
+[node name="VelocityBuffer" type="Viewport" parent="CarCam/MotionBlur/VelocityDemo"]
+size = Vector2( 640, 360 )
 handle_input_locally = false
 keep_3d_linear = true
 debug_draw = 1
 render_target_update_mode = 3
 gui_disable_input = true
 
-[node name="VelocityCam" type="Camera" parent="CarCam/MotionBlur/VelocityBuffer"]
+[node name="VelocityCam" type="Camera" parent="CarCam/MotionBlur/VelocityDemo/VelocityBuffer"]
 visible = false
 cull_mask = 524287
 current = true
 near = 2.0
 
-[node name="VelocityMesh" type="MeshInstance" parent="CarCam/MotionBlur/VelocityBuffer/VelocityCam"]
+[node name="VelocityMesh" type="MeshInstance" parent="CarCam/MotionBlur/VelocityDemo/VelocityBuffer/VelocityCam"]
 transform = Transform( -1, 6.58818e-08, -1.35865e-07, 0, 0.899794, 0.436315, 1.50996e-07, 0.436315, -0.899794, 0, 30, -5 )
 portal_mode = 4
 include_in_bound = false
@@ -275,7 +336,7 @@ layers = 524288
 cast_shadow = 0
 extra_cull_margin = 16384.0
 generate_lightmap = false
-mesh = ExtResource( 11 )
+mesh = ExtResource( 6 )
 skeleton = NodePath("../..")
 software_skinning_transform_normals = false
 material/0 = SubResource( 74 )
@@ -295,38 +356,6 @@ cull_mask = 524287
 current = true
 near = 2.0
 
-[node name="NeighborBuffer" type="Viewport" parent="CarCam/MotionBlur"]
-size = Vector2( 64, 36 )
-handle_input_locally = false
-hdr = false
-disable_3d = true
-keep_3d_linear = true
-usage = 1
-debug_draw = 1
-render_target_update_mode = 3
-gui_disable_input = true
-
-[node name="NeighborVelocity" type="ColorRect" parent="CarCam/MotionBlur/NeighborBuffer"]
-material = SubResource( 120 )
-anchor_right = 1.0
-anchor_bottom = 1.0
-
-[node name="TiledBuffer" type="Viewport" parent="CarCam/MotionBlur"]
-size = Vector2( 64, 36 )
-handle_input_locally = false
-hdr = false
-disable_3d = true
-keep_3d_linear = true
-usage = 1
-debug_draw = 1
-render_target_update_mode = 3
-gui_disable_input = true
-
-[node name="TiledVelocity" type="ColorRect" parent="CarCam/MotionBlur/TiledBuffer"]
-material = SubResource( 121 )
-anchor_right = 1.0
-anchor_bottom = 1.0
-
 [node name="NoBlurBuffer" type="Viewport" parent="CarCam/MotionBlur"]
 size = Vector2( 1280, 720 )
 transparent_bg = true
@@ -343,7 +372,6 @@ current = true
 near = 2.0
 
 [node name="HUD" type="VBoxContainer" parent="CarCam"]
-visible = false
 light_mask = 0
 margin_right = 767.0
 margin_bottom = 200.0
@@ -352,7 +380,7 @@ margin_bottom = 200.0
 light_mask = 0
 margin_right = 767.0
 margin_bottom = 14.0
-script = ExtResource( 8 )
+script = ExtResource( 19 )
 __meta__ = {
 "_edit_use_anchors_": false
 }

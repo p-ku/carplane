@@ -94,7 +94,6 @@ public class AtmoMesh : MeshInstance
 	atmoMat.SetShaderParam("half_vert_reso", halfReso.y);
 	atmoMat.SetShaderParam("atmo_height_sq", vars.atmoHeight * vars.atmoHeight);
 	atmoMat.SetShaderParam("no_blur_mask", noBlurView.GetTexture());
-	//   atmoMat.SetShaderParam("no_blur_mask", carBuff);
 
 	atmoMat.SetShaderParam("quality", atmoQuality);
 

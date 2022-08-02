@@ -105,7 +105,7 @@ vec3 filter(vec2 uv, float j)
 }
 void vertex()
 {
-	UV = 1. - UV;
+	UV.y = 1. - UV.y;
 }
 void fragment()
 {

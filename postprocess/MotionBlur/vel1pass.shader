@@ -39,13 +39,12 @@ void fragment()
 		if (depth < 1.)
 			prev_pixel_pos += (pixel_pos.xyz - cam_prev_pos);
 
-	vec2 frag_prev = half_reso - prev_pixel_pos.xy * res_depth_vec / prev_pixel_pos.z;
-	vec2 frag_vel = (FRAGCOORD.xy - frag_prev);
-	float vel_mag = length(frag_vel);
-	float clamped_vel = max(min(vel_mag * shutter_angle, tile_pixel_size), 0.5);
-	half_blur = 0.5 + 0.5 * frag_vel * clamped_vel / (tile_pixel_size * (vel_mag + eps));
+		vec2 frag_prev = half_reso - prev_pixel_pos.xy * res_depth_vec / prev_pixel_pos.z;
+		vec2 frag_vel = (FRAGCOORD.xy - frag_prev);
+		float vel_mag = length(frag_vel);
+		float clamped_vel = max(min(vel_mag * shutter_angle, tile_pixel_size), 0.5);
+		half_blur = 0.5 + 0.5 * frag_vel * clamped_vel / (tile_pixel_size * (vel_mag + eps));
 	}
 	ALBEDO = vec3(half_blur, depth);
 	//	ALBEDO = vec3(half_blur, 0.);
-
 }

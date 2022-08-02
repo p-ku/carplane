@@ -10,7 +10,7 @@ uniform vec2 inv_reso;
 uniform vec2 tile_uv_size;
 void vertex()
 {
-	UV = 1. - UV;
+	//	UV.y = 1. - UV.y;
 }
 
 void fragment()

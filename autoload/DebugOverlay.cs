@@ -24,10 +24,10 @@ public class DebugOverlay : Label
     label_text += GD.Str("FPS: ", vars.fps) + "\n";
     //  label_text += GD.Str("FrameTime: ", vars.frameTime) + "\n";
     //  label_text += GD.Str("Totcount: ", vars.totCount) + "\n";
-    label_text += String.Format("{0:0.##} {1}", mem, sizes[order]) + "\n";
-    label_text += GD.Str("Drag: ", vars.DragMag) + "N" + "\n";
-    label_text += GD.Str("Lift: ", car.lift.Length()) + "N" + "\n";
-    label_text += GD.Str("AngDamp", vars.AngDamp) + "\n";
+    // label_text += String.Format("{0:0.##} {1}", mem, sizes[order]) + "\n";
+    // label_text += GD.Str("Drag: ", vars.DragMag) + "N" + "\n";
+    // label_text += GD.Str("Lift: ", car.lift.Length()) + "N" + "\n";
+    // label_text += GD.Str("AngDamp", vars.AngDamp) + "\n";
 
     Text = label_text;
   }

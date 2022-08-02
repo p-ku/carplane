@@ -24,7 +24,6 @@ public class MotionBlur : ColorRect
   public override void _Ready()
   {
 	Vector2 renderRes = GetTree().Root.GetViewport().Size;
-	//renderRes = new Vector2(600, 240);
 	leadCam = (Camera)GetParent();
 	velCam = (Camera)GetNode("VelocityBuffer/VelocityCam");
 	colorCam = (Camera)GetNode("ColorBuffer/ColorCam");
@@ -51,8 +50,7 @@ public class MotionBlur : ColorRect
 	velView.Size = renderRes;
 	tiledView.Size = velView.Size / blurTileSize;
 	neighborView.Size = tiledView.Size;
-	// 	tiledVel.RectSize = renderRes;
-	//neighborVel.RectSize = tiledView.Size;
+
 	float j_prime_term = 0.95f * 27 / blurSteps;
 
 	Vector2 halfUvDepthVec = new Vector2(Mathf.Tan(FovHalfRad.x), Mathf.Tan(FovHalfRad.y));
@@ -74,7 +72,6 @@ public class MotionBlur : ColorRect
 	(tiledVel.Material as ShaderMaterial).SetShaderParam("velocity_buffer", velView.GetTexture());
 	(tiledVel.Material as ShaderMaterial).SetShaderParam("inv_reso", invReso);
 	(tiledVel.Material as ShaderMaterial).SetShaderParam("tile_uv_size", tileUvSize);
-	//(tiledVel.Material as ShaderMaterial).SetShaderParam("tile_uv_size", tileUvSize);
 
 	// Initiate blur neighbor pass.
 	(neighborVel.Material as ShaderMaterial).SetShaderParam("tiled_velocity", tiledView.GetTexture());
@@ -151,7 +148,7 @@ public class MotionBlur : ColorRect
 	}
 	else velMat.SetShaderParam("snap", false);
 
-	//	velMat.SetShaderParam("cam_prev_pos", -leadCam.ToLocal(PrevGlobalTransform.origin));
+	//velMat.SetShaderParam("cam_prev_pos", -leadCam.ToLocal(PrevGlobalTransform.origin));
 	velMat.SetShaderParam("cam_prev_xform", leadCam.GlobalTransform.basis.Inverse() * PrevGlobalTransform.basis);
 
 	PrevGlobalTransform = leadCam.GlobalTransform;
