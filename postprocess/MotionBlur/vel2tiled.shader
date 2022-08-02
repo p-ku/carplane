@@ -16,10 +16,10 @@ void vertex()
 void fragment()
 {
 	vec3 max_tile = vec3(0.5, 0.5, 0.);
-
-	for (float i = UV.x; i < UV.x + tile_uv_size.x; i += inv_reso.x)
+	vec2 first_pixel = floor(UV / tile_uv_size) * tile_uv_size + 0.5 * inv_reso;
+	for (float i = first_pixel.x; i < first_pixel.x + tile_uv_size.x; i += inv_reso.x)
 	{
-		for (float j = UV.y; j < UV.y + tile_uv_size.y; j += inv_reso.y)
+		for (float j = first_pixel.y; j < first_pixel.y + tile_uv_size.y; j += inv_reso.y)
 		{
 			vec2 sample = texture(velocity_buffer, vec2(i, j)).xy;
 

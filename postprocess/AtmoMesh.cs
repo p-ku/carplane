@@ -74,7 +74,7 @@ public class AtmoMesh : MeshInstance
 	float resDepthVec = 0.5f * velView.Size.y / halfUvDepthVec.y;
 	Vector2 uvDepthVec = 0.5f * Vector2.One / halfUvDepthVec;
 
-	atmoMesh.Visible = true;
+	// atmoMesh.Visible = true;
 
 	// Initiate atmosphere.
 	atmoMat.SetShaderParam("velocity_buffer", velView.GetTexture());

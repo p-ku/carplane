@@ -101,21 +101,21 @@ shader_param/f3 = 0.0
 shader_param/f4 = 0.0
 shader_param/light_direction = Vector3( 0, 0, 1 )
 
+[sub_resource type="ShaderMaterial" id=121]
+shader = ExtResource( 2 )
+shader_param/inv_reso = null
+shader_param/tile_uv_size = null
+
+[sub_resource type="ShaderMaterial" id=120]
+shader = ExtResource( 19 )
+shader_param/tile_uv_size = null
+
 [sub_resource type="ShaderMaterial" id=122]
 shader = ExtResource( 5 )
 shader_param/reso = null
 shader_param/tile_pixel_size = null
 shader_param/steps = null
 shader_param/j_prime_term = null
-
-[sub_resource type="ShaderMaterial" id=120]
-shader = ExtResource( 19 )
-shader_param/tile_uv_size = null
-
-[sub_resource type="ShaderMaterial" id=121]
-shader = ExtResource( 2 )
-shader_param/inv_reso = null
-shader_param/tile_uv_size = null
 
 [sub_resource type="ShaderMaterial" id=74]
 shader = ExtResource( 10 )
@@ -226,6 +226,7 @@ script = ExtResource( 1 )
 
 [node name="AtmoMesh" type="MeshInstance" parent="CarCam"]
 transform = Transform( -4.37114e-08, -1.77636e-15, -1, -0.583966, 0.811778, 2.5526e-08, 0.811778, 0.583966, -3.5484e-08, -4, 2.94824, -4.03845 )
+visible = false
 portal_mode = 4
 include_in_bound = false
 allow_merging = false
@@ -243,14 +244,56 @@ script = ExtResource( 7 )
 
 [node name="CamTween" type="Tween" parent="CarCam"]
 
+[node name="TileDemo" type="ColorRect" parent="CarCam"]
+visible = false
+light_mask = 0
+material = SubResource( 121 )
+anchor_top = 0.25
+anchor_right = 1.0
+anchor_bottom = 0.5
+
+[node name="NeighborDemo" type="ColorRect" parent="CarCam"]
+visible = false
+material = SubResource( 120 )
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.75
+
 [node name="MotionBlur" type="ColorRect" parent="CarCam"]
 light_mask = 0
 material = SubResource( 122 )
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_bottom = 18.0
 script = ExtResource( 6 )
+blurAmount = 1.0
 blurLayers = 1048573
+
+[node name="ColorBuffer" type="Viewport" parent="CarCam/MotionBlur"]
+size = Vector2( 1280, 720 )
+handle_input_locally = false
+usage = 3
+render_target_update_mode = 3
+gui_disable_input = true
+
+[node name="ColorCam" type="Camera" parent="CarCam/MotionBlur/ColorBuffer"]
+cull_mask = 524287
+current = true
+near = 2.0
+
+[node name="NoBlurBuffer" type="Viewport" parent="CarCam/MotionBlur"]
+size = Vector2( 1280, 720 )
+transparent_bg = true
+handle_input_locally = false
+keep_3d_linear = true
+usage = 3
+debug_draw = 1
+render_target_update_mode = 3
+gui_disable_input = true
+
+[node name="NoBlurCam" type="Camera" parent="CarCam/MotionBlur/NoBlurBuffer"]
+cull_mask = 524287
+current = true
+near = 2.0
 
 [node name="NeighborBuffer" type="Viewport" parent="CarCam/MotionBlur"]
 size = Vector2( 64, 36 )
@@ -284,8 +327,15 @@ material = SubResource( 121 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 
+[node name="VelocityDemo" type="ViewportContainer" parent="CarCam/MotionBlur"]
+visible = false
+light_mask = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -720.0
+
 [node name="VelocityBuffer" type="Viewport" parent="CarCam/MotionBlur"]
-size = Vector2( 1280, 720 )
+size = Vector2( 600, 240 )
 handle_input_locally = false
 keep_3d_linear = true
 debug_draw = 1
@@ -294,6 +344,7 @@ gui_disable_input = true
 
 [node name="VelocityCam" type="Camera" parent="CarCam/MotionBlur/VelocityBuffer"]
 visible = false
+cull_mask = 524287
 current = true
 near = 2.0
 
@@ -314,34 +365,8 @@ __meta__ = {
 "apply_volumetrics": false
 }
 
-[node name="ColorBuffer" type="Viewport" parent="CarCam/MotionBlur"]
-size = Vector2( 1280, 720 )
-handle_input_locally = false
-usage = 3
-render_target_update_mode = 3
-gui_disable_input = true
-
-[node name="ColorCam" type="Camera" parent="CarCam/MotionBlur/ColorBuffer"]
-cull_mask = 524287
-current = true
-near = 2.0
-
-[node name="NoBlurBuffer" type="Viewport" parent="CarCam/MotionBlur"]
-size = Vector2( 1280, 720 )
-transparent_bg = true
-handle_input_locally = false
-keep_3d_linear = true
-usage = 3
-debug_draw = 1
-render_target_update_mode = 3
-gui_disable_input = true
-
-[node name="NoBlurCam" type="Camera" parent="CarCam/MotionBlur/NoBlurBuffer"]
-cull_mask = 524287
-current = true
-near = 2.0
-
 [node name="HUD" type="VBoxContainer" parent="CarCam"]
+visible = false
 light_mask = 0
 margin_right = 767.0
 margin_bottom = 200.0

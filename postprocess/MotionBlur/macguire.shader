@@ -8,7 +8,7 @@ render_mode unshaded;
 uniform sampler2D neighbor_buffer; // Plane image of 3D world as viewed by player, used for color
 uniform sampler2D color_buffer;		 // Plane image of 3D world as viewed by player, used for color
 uniform sampler2D velocity_buffer; // Velocity and depth information
-uniform sampler2D noise;		 // Velocity and depth information
+uniform sampler2D noise;					 // Velocity and depth information
 
 uniform vec2 reso;
 uniform float tile_pixel_size;
@@ -23,7 +23,6 @@ vec4 correct(vec3 pixel_vel)
 	vec2 corrected = (pixel_vel.xy - 0.5) * tile_pixel_size;
 	return vec4(corrected, pixel_vel.z, length(corrected));
 }
-
 
 vec3 filter(vec2 uv, float j)
 {
@@ -110,5 +109,5 @@ void vertex()
 }
 void fragment()
 {
-	COLOR = vec4(filter(UV,texture(noise, UV).r), 1.);
+	COLOR = vec4(filter(UV, texture(noise, UV).r), 1.);
 }
