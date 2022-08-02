@@ -5,7 +5,7 @@ This motion blur is based on "[A Fast and Stable Feature-Aware Motion Blur Filte
 https://user-images.githubusercontent.com/66377062/182406779-630d31df-d975-48b7-9e9f-cd5d04e4e8c8.mp4
 
 The quick and dirty: 
-1. Find maximum pixel velocity in each *r* ⇥ *r* tile (20 pixels by 20 pixels in the example). 
+1. Find maximum pixel velocity in each *r* by *r* tile (20 pixels by 20 pixels in the example). 
 2. Find maximum tile velocity amongst a tile and it's neighbors, 3 tiles by 3 tiles.
 3. Weight blur samples and blur the image (I said quick and dirty, I linked the paper).
 
