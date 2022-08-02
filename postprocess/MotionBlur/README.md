@@ -7,7 +7,7 @@ https://user-images.githubusercontent.com/66377062/182406779-630d31df-d975-48b7-
 The quick and dirty: 
 1. Find maximum pixel velocity in each *r* by *r* tile (20 pixels by 20 pixels in the video). 
 2. Find maximum tile velocity amongst a tile and it's neighbors, 3 tiles by 3 tiles.
-3. Weight blur samples and blur the image (I said quick and dirty, I linked the paper).
+3. Weight blur samples and blur the image (I said quick and dirty, read the paper for details).
 
 In the video, I'm showing each buffer the stores information for this method. The first is the velocity and depth buffer. Velocity is stored in the red and green channels, red is vertical, green is horizontal. When there's no motion, it's an ugly green color because velocities are normalized and centered at 0.5 to keep values between 0 and 1. The second buffer is showing max velocities for each tile. For this buffer only velocity is stored using red and green, just as was done with the first buffer. The third buffer shows the max velocity for each tile's 3x3 tile neighborhood.
 
