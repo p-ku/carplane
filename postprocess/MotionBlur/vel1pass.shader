@@ -12,13 +12,19 @@ uniform float res_depth_vec;
 uniform vec2 half_reso;
 uniform float tile_pixel_size;
 uniform float shutter_angle = 0.5;
-uniform bool all_blur;
+// uniform bool all_blur;
 
 const float eps = 0.00001;
 
 void vertex()
 {
+	// VERTEX *= 2.;
 	POSITION = vec4(VERTEX, 1.0);
+	// UV.y = 1. - UV.y + 0.5;
+	// UV.x = UV.x + 0.5;
+	//	UV.y = 2. * (1. - UV.y);
+	//	UV.x = UV.x * 2.;
+	UV.y = (1. - UV.y);
 }
 
 void fragment()
@@ -26,7 +32,7 @@ void fragment()
 	float depth = texture(DEPTH_TEXTURE, SCREEN_UV).r;
 
 	vec2 half_blur = vec2(0.5);
-	bool blur_it = texture(no_blur_mask, SCREEN_UV).a == 0. || all_blur;
+	bool blur_it = texture(no_blur_mask, SCREEN_UV).a == 0.; // || all_blur;
 
 	if (!snap && blur_it)
 	{
@@ -47,4 +53,5 @@ void fragment()
 	}
 	ALBEDO = vec3(half_blur, depth);
 	//	ALBEDO = vec3(half_blur, 0.);
+	// ALBEDO = vec3(UV, 0.);
 }

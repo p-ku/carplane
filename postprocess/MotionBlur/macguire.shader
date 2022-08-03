@@ -110,4 +110,5 @@ void vertex()
 void fragment()
 {
 	COLOR = vec4(filter(UV, texture(noise, UV).r), 1.);
+	// COLOR = vec4(texture(velocity_buffer, UV).xy, 0., 1.);
 }
