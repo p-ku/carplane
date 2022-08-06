@@ -37,6 +37,9 @@ uniform float atmo_rad_sq; // the radius of the atmosphere
 // uniform float f3;
 // uniform float f4;
 uniform vec3 light_direction = vec3(0., 0., 1.);
+uniform vec2 reso;
+uniform vec2 sun_frag;
+uniform float sun_size;
 
 // varying flat float cam_alt;
 // varying flat mat4 ipm;
@@ -182,7 +185,77 @@ vec4 calculate_scattering(
 
 	return sky_color;
 }
+vec4 lensflare(vec2 uv, vec2 frag, vec2 sun_uv)
+{
+	vec2 uv_o = uv + 0.5;
+	//	vec2 sun_uv_o = sun_uv + 0.5;
 
+	uv.x = uv.x * reso.x / reso.y;
+	sun_uv.x = sun_uv.x * reso.x / reso.y;
+
+	vec2 uv_diff = uv - sun_uv;
+
+	vec2 frag_diff = frag - sun_frag;
+	vec2 center_frag = reso * 0.5;
+
+	vec2 uvd = uv * (length(uv));
+
+	// float n = noise_vec2(vec2(ang * 16.0, dist_pow * 32.0), texResolution);
+
+	float f1 = max(0.01 - pow(length(uv + 1.2 * sun_uv), 1.9), .0) * 7.0;
+
+	float f2 = max(1.0 / (1.0 + 32.0 * pow(length(uvd + 0.8 * sun_uv), 2.0)), .0) * 00.25;
+	float f22 = max(1.0 / (1.0 + 32.0 * pow(length(uvd + 0.85 * sun_uv), 2.0)), .0) * 00.23;
+	float f23 = max(1.0 / (1.0 + 32.0 * pow(length(uvd + 0.9 * sun_uv), 2.0)), .0) * 00.21;
+
+	vec2 uvx = mix(uv, uvd, -0.5);
+
+	float f4 = max(0.01 - pow(length(uvx + 0.4 * sun_uv), 2.4), .0) * 6.0;
+	float f42 = max(0.01 - pow(length(uvx + 0.45 * sun_uv), 2.4), .0) * 5.0;
+	float f43 = max(0.01 - pow(length(uvx + 0.5 * sun_uv), 2.4), .0) * 3.0;
+
+	//  uvx = mix(uv, uvd, -0.5);
+
+	float f6 = max(0.01 - pow(length(uvx - 0.3 * sun_uv), 1.6), .0) * 6.0;
+	float f62 = max(0.01 - pow(length(uvx - 0.325 * sun_uv), 1.6), .0) * 3.0;
+	float f63 = max(0.01 - pow(length(uvx - 0.35 * sun_uv), 1.6), .0) * 5.0;
+
+	uvx = mix(uv, uvd, -.4);
+
+	float f5 = max(0.01 - pow(length(uvx + 0.2 * sun_uv), 5.5), .0) * 2.0;
+	float f52 = max(0.01 - pow(length(uvx + 0.4 * sun_uv), 5.5), .0) * 2.0;
+	float f53 = max(0.01 - pow(length(uvx + 0.6 * sun_uv), 5.5), .0) * 2.0;
+
+	vec3 c = vec3(.0);
+
+	c.r += f2 + f4 + f5 + f6;
+	c.g += f22 + f42 + f52 + f62;
+	c.b += f23 + f43 + f53 + f63;
+	c = c * 1.3 - vec3(length(uvd) * .05);
+
+	// Do not need an artificial sun
+
+	//	if (texture(velocity_buffer, uv_o).z == 1.)
+	//	{
+	float ang = atan(frag_diff.x, frag_diff.y);
+
+	float dist = length(uv_diff);
+	//  vec2 dist_vec = dist * reso;
+	// float dist = length(dist_vec);
+	// // float dist = length(dist_vec);
+	// // dist = length(uv_diff);
+	// //  vec2 dist_pow;
+	// dist = pow(dist, 0.1);
+	// float f0 = length(10. * sun_size / (dist * 16.0 + 1.0));
+	float f0 = sun_size / (dist * 16.0 + sun_size);
+
+	//  f0 = f0 + f0 * (sin(noise_float(sin(ang * 2. + sun_uv.x) * 4.0 - cos(ang * 3. + sun_uv.y), reso) * 16.) * .1 + dist_pow * .1 + .8);
+	//	c += vec3(f0);
+	//}
+	// vec2 frag_prev = half_reso - prev_pixel_pos.xy * res_depth_vec / prev_pixel_pos.z;
+
+	return vec4(c, f0);
+}
 vec3 cc(vec3 color, float factor, float factor2) // color modifier
 {
 	float w = color.x + color.y + color.z;
@@ -192,7 +265,8 @@ void vertex()
 {
 	POSITION = vec4(VERTEX, 1.0);
 	//	UV = UV + 1.;
-
+	sun_uv_o = sun_frag / reso;
+	sun_uv_o.y = 1. - sun_uv_o.y;
 	// ipm = inv_mat0;
 	// ipm[0][0] = f1;
 	// ipm[1][1] = f2;
@@ -215,12 +289,40 @@ void fragment()
 	view.xyz /= view.w;
 	//	float visual_scale = half_vert_reso - plan_res_depth_vec / view.z;
 
+	vec4 lens_color = lensflare(SCREEN_UV - 0.5, SCREEN_UV * reso, sun_uv_o - 0.5);
+	lens_color.xyz *= tint;
+	lens_color.xyz = cc(lens_color.xyz, .5, .1);
 	vec4 atm = calculate_scattering(CAMERA_MATRIX[3].xyz, normalize(mat3(CAMERA_MATRIX) * view.xyz), length(view.xyz), light_direction, depth, SCREEN_UV);
 
-	atm.a = clamp(atm.a, 0.000000001, 1.);
+	//	atm.w = clamp(atm.w, 0.000000001, 1.);
+	// sun_atm.w = clamp(sun_atm.w, 0.000000001, 1.);
 
-	atm.rgb = atm.rgb / atm.a;
+	float circ = 1. - circle(UV / view.w, 0.1, 0.);
+	// atm.xyz *= (1. + lens_color.w);
+	// atm.xyz = atm.xyz / atm.w;
+	// sun_atm.xyz = sun_atm.xyz / sun_atm.w;
+	//	float sun_sum = sun_atm.x + sun_atm.y + sun_atm.z;
+	//	vec3 sun_norm = sun_atm.xyz / sun_sum;
+	// vec4 mixed = screen(vec4(40. * atm.xyz * lens_color.w / max(length(atm.xyz), 1.), 1.), atm);
+	// vec4 mixed = screen(vec4((atm.xyz + 40. * lens_color.w) / max(length(atm.xyz), 1.), 1.), atm);
+	//	float sun_max = max(length(sun_atm.xyz), 1.);
+	//	float sun_len = length(sun_atm.xyz);
+	//	vec3 lens_w_sun = lens_color.w * 20. * sun_norm;
+	vec4 mixed = screen(vec4(vec3((1. - atm.w) * lens_color.w), 1.), atm);
+	mixed = mix(vec4(lens_color.w), atm, atm.w);
+	mixed = lens_color.w * atm + lens_color.w * (1. - atm.w);
+	mixed = vec4(lens_color.w * (1. - atm.w)) + atm;
+	//	mixed = screen(vec4(sun_norm * lens_color.w, lens_color.w), atm);
+	// vec4 mixed = screen(vec4(lens_w_sun, lens_color.w), atm);
+	//  lens_color.w *= atm.xyz;
+	//  mixed.xyz = (lens_color.w + atm.xyz) / length(atm.xyz);
+	//   vec4 mixed = screen(vec4(50. * atm.xyz * lens_color.w, 1.), atm);
+	//	mixed.xyz =
+	//  vec4 mixed = screen(vec4(vec3(lens_color.w) / (atm.w), 1.), atm);
 
-	ALBEDO = atm.rgb;
-	ALPHA = atm.a;
+	vec4 remixed = screen(mixed, lens_color);
+	// vec4 mixed = screen(vec4(10. * atm.xyz * circ / (atm.w), 1.), atm);
+	//  vec4 remixed = screen(mixed, lens_color);
+	ALBEDO = mixed.xyz;
+	ALPHA = mixed.a;
 }

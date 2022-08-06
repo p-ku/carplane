@@ -97,6 +97,14 @@ public class AtmoMesh : MeshInstance
 
 	atmoMat.SetShaderParam("quality", atmoQuality);
 
+	// Lens flare.
+	atmoMat.SetShaderParam("velocity_buffer", velView.GetTexture());
+	atmoMat.SetShaderParam("uv_depth_vec", 0.5f / halfUvDepthVec.y);
+	atmoMat.SetShaderParam("reso", vars.renderRes);
+
+	//	Vector2 sunSize; sunSize.x = 2f * Mathf.Pi / FovDeg.x; sunSize.y = 2f * Mathf.Pi / FovDeg.y;
+	float sunSize = (2f * Mathf.Pi * Vector2.One / vars.FovDeg).Length();
+	atmoMat.SetShaderParam("sun_size", sunSize);
   }
 
   public override void _Process(float delta)
@@ -113,6 +121,15 @@ public class AtmoMesh : MeshInstance
 	//   atmoMat.SetShaderParam("f2", factor2);
 	//   atmoMat.SetShaderParam("f3", factor3);
 	//   atmoMat.SetShaderParam("f4", factor4);
+	Vector3 sunDir = Vector3.Back * 500f + leadCam.GlobalTransform.origin;
+	//  lensFlare.Visible = !leadCam.IsPositionBehind(sunDir);
+	//  if (lensFlare.Visible)
+	//  {
+	Vector2 unprojSunDir = leadCam.UnprojectPosition(sunDir);
+	atmoMat.SetShaderParam("sun_frag", unprojSunDir);
+	// GD.Print(unprojSunDir);
+	//   }
+
 
 	float tanDist = vars.PlanetRadius * Mathf.Tan(Mathf.Acos(vars.PlanetRadius / leadCam.Altitude));
 	tanDist = Mathf.Max(tanDistAtmo, tanDist);

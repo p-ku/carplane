@@ -20,6 +20,7 @@ public class MotionBlur : ColorRect
   uint blurLayers = allLayers;
   Transform PrevGlobalTransform = Transform.Identity;
   Vector2 FovRad, FovHalfRad;
+  ColorRect lensFlare;
 
   public override void _Ready()
   {
@@ -37,6 +38,7 @@ public class MotionBlur : ColorRect
 
 	ColorRect tiledVel = (ColorRect)GetNode("TiledBuffer/TiledVelocity");
 	ColorRect neighborVel = (ColorRect)GetNode("NeighborBuffer/NeighborVelocity");
+	lensFlare = (ColorRect)GetNode("LensFlare");
 
 	Viewport velView = (Viewport)GetNode("VelocityBuffer");
 	Viewport tiledView = (Viewport)GetNode("TiledBuffer");
@@ -99,6 +101,8 @@ public class MotionBlur : ColorRect
 	blurMat.SetShaderParam("steps", blurSteps);
 	blurMat.SetShaderParam("j_prime_term", j_prime_term);
 
+
+
 	// The velocity mesh resides on layer20;
 	colorCam.CullMask = allLayers - layer20;
 	velCam.CullMask = leadCam.CullMask;
@@ -135,6 +139,8 @@ public class MotionBlur : ColorRect
 
   public override void _Process(float delta)
   {
+
+
 	foreach (Camera cam in camGroup)
 	  cam.GlobalTransform = leadCam.GlobalTransform;
 

@@ -24,7 +24,7 @@ void vertex()
 	// UV.x = UV.x + 0.5;
 	//	UV.y = 2. * (1. - UV.y);
 	//	UV.x = UV.x * 2.;
-	UV.y = (1. - UV.y);
+	//	UV.y = (1. - UV.y);
 }
 
 void fragment()
