@@ -1,7 +1,7 @@
 [gd_scene load_steps=43 format=2]
 
 [ext_resource path="res://car/CarCam.cs" type="Script" id=1]
-[ext_resource path="res://postprocess/MotionBlur/vel2tiled.shader" type="Shader" id=2]
+[ext_resource path="res://postprocess/MotionBlur/vel2tiled_split.shader" type="Shader" id=2]
 [ext_resource path="res://environment/planet/plainSphere.tres" type="ArrayMesh" id=3]
 [ext_resource path="res://environment/planet/Redmars-Normal-8k.png" type="Texture" id=4]
 [ext_resource path="res://postprocess/MotionBlur/macguire.shader" type="Shader" id=5]
@@ -147,7 +147,10 @@ shader_param/tile_uv_size = null
 [sub_resource type="ShaderMaterial" id=121]
 shader = ExtResource( 2 )
 shader_param/inv_reso = null
+shader_param/half_inv_reso = null
 shader_param/tile_uv_size = null
+shader_param/half_tile_uv_size_x = null
+shader_param/start_half = null
 
 [node name="Main" type="Node"]
 

@@ -73,7 +73,10 @@ public class MotionBlur : ColorRect
 	// Initiate blur tile pass.
 	(tiledVel.Material as ShaderMaterial).SetShaderParam("velocity_buffer", velView.GetTexture());
 	(tiledVel.Material as ShaderMaterial).SetShaderParam("inv_reso", invReso);
+	(tiledVel.Material as ShaderMaterial).SetShaderParam("half_inv_reso", invReso / 2);
 	(tiledVel.Material as ShaderMaterial).SetShaderParam("tile_uv_size", tileUvSize);
+	(tiledVel.Material as ShaderMaterial).SetShaderParam("half_tile_uv_size_x", tileUvSize.x / 2);
+	(tiledVel.Material as ShaderMaterial).SetShaderParam("start_half", 0);
 
 	// Initiate blur neighbor pass.
 	(neighborVel.Material as ShaderMaterial).SetShaderParam("tiled_velocity", tiledView.GetTexture());
