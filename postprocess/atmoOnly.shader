@@ -69,10 +69,7 @@ vec4 light_step(vec3 pos, vec3 light_dir, int steps, float radius, float b, floa
 
 	return opt_l;
 }
-float circle(vec2 position, float radius, float feather)
-{
-	return smoothstep(radius, radius + feather, length(position - vec2(0.5)));
-}
+
 vec4 calculate_scattering(
 		vec3 start,			// the start of the ray (the camera position)
 		vec3 dir,				// the pixel direction
